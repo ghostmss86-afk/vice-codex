@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="罪城全书 VICE CODEX：GTA 6 全玩法实战百科，收录 50 条高播放攻略视频、6 大区域扫荡清单、127 传奇武器与地堡密码、劫案销赃计算器与 100% 奖杯战绩卡。">
+  <meta property="og:title" content="罪城全书 VICE CODEX v7.0 - GTA 6 实战攻略与玩家社区">
+  <meta property="og:description" content="50 条高流量视频站内播放、区域扫荡追踪、劫案销赃决策器与 100% 奖杯海报生成器。">
+  <title>罪城全书 VICE CODEX v7.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="site-header" id="siteHeader">
+    <div class="container header-inner">
+      <a href="#top" class="brand-wordmark">罪城全书 <span>VICE CODEX</span></a>
+      <nav aria-label="主导航">
+        <ul class="nav-links">
+          <li><a href="#videos">50 视频库</a></li>
+          <li><a href="#sweep">第二屏工具</a></li>
+          <li><a href="#regions">六大区域</a></li>
+          <li><a href="#mechanics">机制密码</a></li>
+          <li><a href="#arsenal">超跑武器</a></li>
+          <li><a href="#checklist">100% 战绩卡</a></li>
+          <li><a href="#lounge">玩家社区</a></li>
+        </ul>
+      </nav>
+      <div class="header-actions">
+        <button type="button" class="search-trigger" id="openSearchBtn">搜索 Cmd+K</button>
+        <button type="button" class="spoiler-toggle" id="spoilerToggle" aria-pressed="false">防剧透：关</button>
+        <button type="button" class="btn-primary" id="openPublishBtn">发布攻略</button>
+        <button type="button" class="menu-toggle" id="menuToggleBtn" aria-expanded="false" aria-controls="mobileNav">菜单</button>
+      </div>
+    </div>
+    <nav class="mobile-nav" id="mobileNav" aria-label="移动端导航">
+      <a href="#videos">50 条高流量视频</a>
+      <a href="#sweep">区域扫荡与销赃计算器</a>
+      <a href="#regions">莱奥尼达六大区域</a>
+      <a href="#mechanics">全玩法机制与密码</a>
+      <a href="#arsenal">超跑与传奇武器</a>
+      <a href="#chapters">五大章节赚钱路线</a>
+      <a href="#checklist">100% 奖杯与战绩卡</a>
+      <a href="#lounge">Vice Lounge 社区交友</a>
+      <div class="mobile-nav-tools">
+        <button type="button" class="btn-secondary" id="mobileSpoilerToggle" aria-pressed="false">防剧透：关</button>
+        <button type="button" class="btn-secondary" id="mobileSearchBtn">全站搜索</button>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero-stage" id="heroStage" aria-label="实时热度全景封面轮播">
+      <div class="hero-slides" id="heroSlides"></div>
+      <div class="hero-scrim" aria-hidden="true"></div>
+      <div class="container hero-content">
+        <div class="hero-top-row">
+          <div class="hero-copy-block" id="heroCopyBlock"></div>
+          <div class="hero-nav-controls">
+            <button type="button" class="hero-arrow" id="heroPrevBtn" aria-label="上一张全景封面">&#8592;</button>
+            <button type="button" class="hero-arrow" id="heroNextBtn" aria-label="下一张全景封面">&#8594;</button>
+          </div>
+        </div>
+        <div class="hero-filmstrip-bar">
+          <div class="filmstrip-rail" id="heroFilmstrip" role="tablist" aria-label="切换全景封面"></div>
+          <div class="segmented" role="tablist" aria-label="封面排序算法" id="heroSortTabs">
+            <button type="button" role="tab" aria-selected="true" data-hero-sort="heat">实时热度排序</button>
+            <button type="button" role="tab" aria-selected="false" data-hero-sort="editorial">官方精选顺序</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="videos">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>50 条高流量实战视频库（站内直接播放）</h2>
+            <p class="section-lead">按实时热度算法自动排位。点击封面在当前页弹出高清播放器，边看实机演示边读要点与评论，告别跳转流失。</p>
+          </div>
+          <div class="controls-row">
+            <div class="segmented" role="tablist" aria-label="筛选视频分类" id="videoCatTabs">
+              <button type="button" role="tab" aria-selected="true" data-vcat="all">全部 50 条</button>
+              <button type="button" role="tab" aria-selected="false" data-vcat="starter">开荒避坑</button>
+              <button type="button" role="tab" aria-selected="false" data-vcat="money">赚钱劫案</button>
+              <button type="button" role="tab" aria-selected="false" data-vcat="weapons">武器地堡</button>
+              <button type="button" role="tab" aria-selected="false" data-vcat="vehicles">超跑改装</button>
+              <button type="button" role="tab" aria-selected="false" data-vcat="easter">隐藏彩蛋</button>
+              <button type="button" role="tab" aria-selected="false" data-vcat="cheats">作弊与100%</button>
+            </div>
+            <select class="sort-select" id="videoSortSelect" aria-label="视频排序方式">
+              <option value="heat">按实时热度排序</option>
+              <option value="views">按播放量排序</option>
+              <option value="newest">按最新收录排序</option>
+            </select>
+          </div>
+        </div>
+        <div class="video-grid" id="videoGrid"></div>
+        <div class="load-more-wrap" id="videoLoadMoreWrap"></div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="sweep">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>主机玩家第二屏实战工作台</h2>
+            <p class="section-lead">左侧按你当前所在的莱奥尼达区域扫荡必拿收集与密码，拿一个勾一个；右侧实时测算劫案最赚钱的销赃人与载具收益。</p>
+          </div>
+          <div class="segmented" role="tablist" aria-label="选择扫荡区域" id="sweepRegionTabs">
+            <button type="button" role="tab" aria-selected="true" data-sweep="port-gellhorn">Port Gellhorn</button>
+            <button type="button" role="tab" aria-selected="false" data-sweep="vice-city">Vice City</button>
+            <button type="button" role="tab" aria-selected="false" data-sweep="leonida-keys">Leonida Keys</button>
+            <button type="button" role="tab" aria-selected="false" data-sweep="grassrivers">Grassrivers</button>
+            <button type="button" role="tab" aria-selected="false" data-sweep="mount-kalaga">Mount Kalaga</button>
+          </div>
+        </div>
+
+        <div class="sweep-layout">
+          <div>
+            <div class="sweep-banner" id="sweepBanner"></div>
+            <div id="sweepChecklist"></div>
+          </div>
+
+          <div class="calc-panel">
+            <h3>劫案收益与销赃决策器</h3>
+            <p style="font-size:var(--text-sm); color:var(--text-muted);">选好当前章节、载具容量与目标赃物，立刻知道该送给哪位销赃人、能不能安全绕开染料包。</p>
+            <div class="calc-grid">
+              <div class="field">
+                <label for="calcChapter">当前章节</label>
+                <select id="calcChapter">
+                  <option value="1">第 1 章（无干扰器）</option>
+                  <option value="2">第 2 章（解锁 Moses 偷车）</option>
+                  <option value="3" selected>第 3 章（已拿染料包干扰器）</option>
+                  <option value="4">第 4 章（开放 20 万大型金库）</option>
+                  <option value="5">第 5 章及终局</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="calcVehicle">撤离载具</label>
+                <select id="calcVehicle">
+                  <option value="0">摩托车（0 赃物袋）</option>
+                  <option value="2">双主角徒步（每人 2 袋）</option>
+                  <option value="4">双人配合传袋（共 4 袋）</option>
+                  <option value="8" selected>厢式货车 / 皮卡（最多 8 袋）</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="calcLoot">主要赃物类型</label>
+                <select id="calcLoot">
+                  <option value="jewelry" selected>珠宝与标记钞票</option>
+                  <option value="narcotics">违禁品（Narcotics）</option>
+                  <option value="supercar">指定稀缺超跑</option>
+                  <option value="vault">大型银行金库现金</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="calcProfile">犯罪档案路线</label>
+                <select id="calcProfile">
+                  <option value="pro" selected>Professional / Hardened（潜行高充能）</option>
+                  <option value="violent">Violent / Psycho（强攻爆头）</option>
+                  <option value="irredeemable">Irredeemable（无聚焦加成）</option>
+                </select>
+              </div>
+            </div>
+            <div class="calc-result-box" id="calcResultBox"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="regions">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>莱奥尼达六大区域定制全景图鉴</h2>
+            <p class="section-lead">覆盖 5 大郡县、4,854 处点位、57 座加油站与 14 家改装厂。支持加载同目录 assets/ 定制高清图并自带在线兜底。</p>
+          </div>
+        </div>
+        <div class="region-grid" id="regionGrid"></div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="mechanics">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>全玩法机制与四大隐藏密码解析</h2>
+            <p class="section-lead">涵盖开荒藏钱、染料包干扰、五级犯罪档案、4 组固定地堡与保险箱密码，以及 UFO 2314 永久三维加成。</p>
+          </div>
+          <div class="segmented" role="tablist" aria-label="筛选玩法系统" id="mechFilterTabs">
+            <button type="button" role="tab" aria-selected="true" data-cat="all">全部 12 项</button>
+            <button type="button" role="tab" aria-selected="false" data-cat="economy">经济与劫案</button>
+            <button type="button" role="tab" aria-selected="false" data-cat="combat">战斗与档案</button>
+            <button type="button" role="tab" aria-selected="false" data-cat="weapons">武器与密码</button>
+            <button type="button" role="tab" aria-selected="false" data-cat="easter">隐藏彩蛋</button>
+          </div>
+        </div>
+        <div class="mechanics-grid" id="mechanicsGrid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="arsenal">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>极速超跑与传奇武器速查表</h2>
+            <p class="section-lead">全图 127 把黄色传奇武器双主角永久共享，切换页签直接对比极速超跑 Top 8 与 Port Gellhorn 全部 8 把传奇枪点位。</p>
+          </div>
+          <div class="segmented" role="tablist" aria-label="切换超跑或传奇武器表" id="arsenalTabs">
+            <button type="button" role="tab" aria-selected="true" data-arsenal="cars">极速超跑 Top 8</button>
+            <button type="button" role="tab" aria-selected="false" data-arsenal="weapons">Port Gellhorn 传奇武器 8 把</button>
+          </div>
+        </div>
+        <div class="table-wrap" id="arsenalTableWrap"></div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="chapters">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>五大章节 91 任务赚钱路线</h2>
+            <p class="section-lead">按当前游玩进度切换章节，速查防漏预警节点与当下最高效变现路径。</p>
+          </div>
+          <div class="segmented" role="tablist" aria-label="选择故事章节" id="chapterTabs">
+            <button type="button" role="tab" aria-selected="true" data-ch="1">第 1 章</button>
+            <button type="button" role="tab" aria-selected="false" data-ch="2">第 2 章</button>
+            <button type="button" role="tab" aria-selected="false" data-ch="3">第 3 章</button>
+            <button type="button" role="tab" aria-selected="false" data-ch="4">第 4 章</button>
+            <button type="button" role="tab" aria-selected="false" data-ch="5">第 5 章</button>
+          </div>
+        </div>
+        <div class="chapter-workbench" id="chapterPanel"></div>
+      </div>
+    </section>
+
+    <section class="section" id="checklist">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>100% 奖杯追踪与战绩海报生成器</h2>
+            <p class="section-lead">勾选已完成权重项，选择你的犯罪档案等级，一键导出高清 PNG 战绩海报分享到小红书、B 站或玩家群。</p>
+          </div>
+          <div class="controls-row">
+            <select class="sort-select" id="posterRankSelect" aria-label="选择战绩卡犯罪档案等级">
+              <option value="Professional">档案：Professional</option>
+              <option value="Hardened">档案：Hardened</option>
+              <option value="Violent">档案：Violent</option>
+              <option value="Psycho">档案：Psycho</option>
+              <option value="Irredeemable">档案：Irredeemable</option>
+            </select>
+            <span class="tabular" id="checklistSummaryText" style="font-weight:700;">已完成 0.0%</span>
+            <button type="button" class="btn-primary" id="downloadPosterBtn">下载战绩海报 PNG</button>
+            <button type="button" class="btn-secondary" id="resetChecklistBtn">重置进度</button>
+          </div>
+        </div>
+        <div class="progress-bar-wrap" aria-hidden="true">
+          <div class="progress-bar-fill" id="checklistProgressBar"></div>
+        </div>
+        <div class="checklist-grid" id="checklistGrid"></div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="lounge">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>Vice Lounge 玩家共创与交友大厅</h2>
+            <p class="section-lead">支持投稿自动抓取 YouTube 封面、一键导出 GitHub PR、主机玩家交友名片与 4 频道聊天室（Phase 3 可无缝接入 Giscus / Supabase）。</p>
+          </div>
+          <div class="controls-row">
+            <div class="segmented" role="tablist" aria-label="筛选社区投稿分类" id="communityFilterTabs">
+              <button type="button" role="tab" aria-selected="true" data-post-cat="all">全部投稿</button>
+              <button type="button" role="tab" aria-selected="false" data-post-cat="赚钱路线">赚钱路线</button>
+              <button type="button" role="tab" aria-selected="false" data-post-cat="隐藏彩蛋">隐藏彩蛋</button>
+              <button type="button" role="tab" aria-selected="false" data-post-cat="开荒避坑">开荒避坑</button>
+            </div>
+            <button type="button" class="btn-secondary" id="exportJsonBtn">导出社区 JSON</button>
+          </div>
+        </div>
+
+        <div class="lounge-layout">
+          <div><div id="communityList"></div></div>
+          <div class="social-column">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; margin-bottom:1rem; flex-wrap:wrap;">
+                <h3>主机与 PC 玩家交友名片墙</h3>
+                <button type="button" class="text-action-btn" id="openFriendBtn">登记我的名片</button>
+              </div>
+              <div class="segmented" role="tablist" aria-label="按平台筛选玩家" id="friendPlatformTabs" style="margin-bottom:1rem;">
+                <button type="button" role="tab" aria-selected="true" data-plat="all">全部平台</button>
+                <button type="button" role="tab" aria-selected="false" data-plat="PS5">PS5</button>
+                <button type="button" role="tab" aria-selected="false" data-plat="Xbox">Xbox</button>
+                <button type="button" role="tab" aria-selected="false" data-plat="PC">PC 预备队</button>
+              </div>
+              <div class="friend-list" id="friendList"></div>
+            </div>
+
+            <div>
+              <h3 style="margin-bottom:0.85rem;">四频道玩家聊天室</h3>
+              <div class="segmented" role="tablist" aria-label="切换聊天频道" id="chatChannelTabs" style="margin-bottom:1rem;">
+                <button type="button" role="tab" aria-selected="true" data-ch="#开荒互助">#开荒互助</button>
+                <button type="button" role="tab" aria-selected="false" data-ch="#彩蛋破译">#彩蛋破译</button>
+                <button type="button" role="tab" aria-selected="false" data-ch="#晒车拍照">#晒车拍照</button>
+                <button type="button" role="tab" aria-selected="false" data-ch="#车队预招">#车队预招</button>
+              </div>
+              <div class="chat-box">
+                <div class="chat-messages" id="chatMessages"></div>
+                <form class="chat-form" id="chatForm">
+                  <input type="text" class="chat-input" id="chatAuthorInput" placeholder="昵称" style="max-width:110px;" required>
+                  <input type="text" class="chat-input" id="chatTextInput" placeholder="发一条消息到当前频道..." required>
+                  <button type="submit" class="btn-primary">发送</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="sponsor">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>主机装备推荐与原生赞助席位</h2>
+            <p class="section-lead">无弹窗商业化示范：通过场景化硬件联盟导购与首页轮播原生赞助位，为开源攻略站建立可持续收入。</p>
+          </div>
+          <button type="button" class="btn-secondary" id="sponsorActionBtn">复制商业合作说明</button>
+        </div>
+        <div class="sponsor-grid">
+          <div class="sponsor-item">
+            <div class="sponsor-kicker">主机扩容 / 联盟导购位</div>
+            <h3>PS5 2TB PCIe 4.0 散热片固态硬盘</h3>
+            <p>《GTA 6》本体与后续线上更新容量庞大，高速读写显著缩短双主角无缝切换与重启载入耗时。</p>
+          </div>
+          <div class="sponsor-item">
+            <div class="sponsor-kicker">操控升级 / 联盟导购位</div>
+            <h3>DualSense Edge 精英背键手柄</h3>
+            <p>将聚焦模式 L3+R3 与双人传袋快捷键映射至背键，高强度金库火拼与超跑漂移操作更稳。</p>
+          </div>
+          <div class="sponsor-item">
+            <div class="sponsor-kicker">原生品牌赞助位 / 开放排期</div>
+            <h3>主机联机加速器与 4K OLED 专题位</h3>
+            <p>面向加速器、显示设备与游戏外设品牌开放首页焦点轮播与页底原生位，零遮挡广告保证口碑。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>罪城全书 VICE CODEX v7.0 / MIT 开源攻略生态</span>
+      <span>已收录 50 条实测高流量视频与 6 大区域定制视觉</span>
+    </div>
+  </footer>
+
+  <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+
+  <div class="video-modal" id="videoModal" role="dialog" aria-modal="true" aria-label="站内视频播放器" aria-hidden="true">
+    <div class="video-modal-stage">
+      <div class="video-iframe-wrap" id="videoIframeWrap"></div>
+    </div>
+    <div class="video-modal-side">
+      <div class="video-modal-info">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.75rem;">
+          <h3 id="vmTitle">视频标题</h3>
+          <button type="button" class="btn-secondary" id="closeVideoModalBtn">关闭</button>
+        </div>
+        <div id="vmMeta" class="tabular" style="font-size:var(--text-sm); color:var(--accent-gold);"></div>
+        <p id="vmNote" style="font-size:var(--text-sm); color:var(--text-muted);"></p>
+        <a id="vmExtLink" href="#" target="_blank" rel="noopener noreferrer" class="text-action-btn">在 YouTube 新窗口打开原视频</a>
+      </div>
+      <div class="drawer-body" style="padding:1rem 1.4rem;">
+        <div id="vmCommentList" style="display:flex; flex-direction:column; gap:0.75rem;"></div>
+        <form id="vmCommentForm" style="display:flex; flex-direction:column; gap:0.65rem; margin-top:auto; padding-top:0.85rem; border-top:1px solid var(--hairline);">
+          <input type="text" class="chat-input" id="vmCommentAuthor" placeholder="你的昵称" required maxlength="30">
+          <div class="chat-form">
+            <input type="text" class="chat-input" id="vmCommentText" placeholder="发表对这条攻略的实测评论..." required>
+            <button type="submit" class="btn-primary">发表</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="全站聚合搜索" aria-hidden="true">
+    <div class="search-modal-input-wrap">
+      <input type="search" class="search-modal-input" id="globalSearchInput" placeholder="搜索 50 条视频、2314、085355、Emerus、传奇武器、区域扫荡或玩家投稿...">
+      <button type="button" class="btn-secondary" id="closeSearchBtn">关闭</button>
+    </div>
+    <div class="search-results" id="searchResults"></div>
+  </div>
+
+  <aside class="drawer" id="publishDrawer" aria-label="发布新攻略" aria-hidden="true">
+    <div class="drawer-head">
+      <h3>发布攻略或视频到社区流</h3>
+      <button type="button" class="btn-secondary" data-close-drawer>关闭</button>
+    </div>
+    <form class="drawer-body" id="publishForm">
+      <div class="field"><label for="postTitle">攻略标题</label><input type="text" id="postTitle" required maxlength="90" placeholder="例如：Big Pine 地堡 085355 速拿 Cold War 556"></div>
+      <div class="field"><label for="postAuthor">署名 / GitHub ID</label><input type="text" id="postAuthor" required maxlength="32" placeholder="@ViceRunner"></div>
+      <div class="field"><label for="postCategory">所属分类</label><select id="postCategory"><option value="赚钱路线">赚钱路线</option><option value="隐藏彩蛋">隐藏彩蛋</option><option value="开荒避坑">开荒避坑</option></select></div>
+      <div class="field"><label for="postVideoUrl">可选 YouTube 链接（自动生成高清封面）</label><input type="url" id="postVideoUrl" placeholder="https://www.youtube.com/watch?v=..."></div>
+      <div class="field"><label for="postContent">实战步骤与避坑要点</label><textarea id="postContent" required placeholder="写清触发地点、前置条件与操作细节..."></textarea></div>
+      <div class="drawer-foot" style="padding:0.75rem 0 0; border-top:0;">
+        <button type="button" class="btn-secondary" data-close-drawer>取消</button>
+        <button type="submit" class="btn-primary">发布攻略</button>
+      </div>
+    </form>
+  </aside>
+
+  <aside class="drawer" id="commentDrawer" aria-label="评论讨论抽屉" aria-hidden="true">
+    <div class="drawer-head">
+      <h3 id="commentDrawerTitle">评论讨论</h3>
+      <button type="button" class="btn-secondary" data-close-drawer>关闭</button>
+    </div>
+    <div class="drawer-body">
+      <div id="commentList" style="display:flex; flex-direction:column; gap:0.85rem;"></div>
+      <form id="commentForm" style="display:flex; flex-direction:column; gap:0.75rem; margin-top:auto; padding-top:1rem; border-top:1px solid var(--hairline);">
+        <div class="field"><label for="commentAuthor">你的昵称</label><input type="text" id="commentAuthor" required maxlength="30" placeholder="例如：@OceanDrive"></div>
+        <div class="field"><label for="commentBody">补充实测经验或提问</label><textarea id="commentBody" required placeholder="输入你的评论..." style="min-height:84px;"></textarea></div>
+        <button type="submit" class="btn-primary">发表评论</button>
+      </form>
+    </div>
+  </aside>
+
+  <aside class="drawer" id="friendDrawer" aria-label="登记交友名片" aria-hidden="true">
+    <div class="drawer-head">
+      <h3>登记我的游戏交友名片</h3>
+      <button type="button" class="btn-secondary" data-close-drawer>关闭</button>
+    </div>
+    <form class="drawer-body" id="friendForm">
+      <div class="field"><label for="friendGameId">PSN / Xbox / Steam ID</label><input type="text" id="friendGameId" required maxlength="36" placeholder="例如：VicePilot_86"></div>
+      <div class="field"><label for="friendPlatform">平台</label><select id="friendPlatform"><option value="PS5">PS5</option><option value="Xbox">Xbox</option><option value="PC">PC 预备队</option></select></div>
+      <div class="field"><label for="friendNote">常玩方向与在线时段</label><input type="text" id="friendNote" required maxlength="60" placeholder="每晚 21:00 后，主攻 100% 收集与彩蛋破译"></div>
+      <div class="drawer-foot" style="padding:0.75rem 0 0; border-top:0;">
+        <button type="button" class="btn-secondary" data-close-drawer>取消</button>
+        <button type="submit" class="btn-primary">保存名片</button>
+      </div>
+    </form>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
