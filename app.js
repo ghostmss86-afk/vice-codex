@@ -1,7 +1,7 @@
 const HERO_SLIDES = [
   { id: 'hero-1', order: 1, views24h: 3953074, engagement: 0.96, freshness: 1.0, sponsored: false, tag: '热度榜首 / 50 条视频站内播放', title: '罪恶都市黄昏海滨全玩法百科', desc: '收录 50 条实测高播放视频、6 大区域扫荡清单与 127 传奇武器点位，主机第二屏常驻工具站。', ctaText: '浏览 50 条实战视频', ctaHref: '#videos', image: 'assets/vice-city.jpg', fallback: 'https://vice6map.com/assets/screenshots/vice-city-ocean-drive.jpg', shortTitle: '罪恶都市海滨' },
-  { id: 'hero-2', order: 2, views24h: 1580000, engagement: 0.94, freshness: 0.98, sponsored: false, tag: 'Port Gellhorn 扫荡专题', title: '8 把传奇武器与 UFO 2314 永久加成', desc: '树顶沙发左轮、4 组固定地堡密码与星光旅馆 UFO 营救，一键进入区域扫荡模式逐项勾选。', ctaText: '打开区域扫荡工作台', ctaHref: '#sweep', image: 'assets/port-gellhorn.jpg', fallback: 'https://static.wikia.nocookie.net/gtawiki/images/9/9f/PortGellhorn-GTAVI-CroppedPostcard.png/revision/latest?cb=20250507043050', shortTitle: 'Port Gellhorn 扫荡' },
-  { id: 'hero-3', order: 3, views24h: 1227918, engagement: 0.93, freshness: 0.96, sponsored: false, tag: 'Leonida Keys 开荒防漏', title: '第一章离岛前绝不能漏的隐藏收集', desc: 'Tourist Trap 任务会清空 Jason 旧宅与现金，先去卧室地板藏钱并领完门口信箱赏金。', ctaText: '查看章节避坑路线', ctaHref: '#chapters', image: 'assets/leonida-keys.jpg', fallback: 'https://static.wikia.nocookie.net/gtawiki/images/5/59/LeonidaKeys-GTAVI-CroppedPostcard.png/revision/latest?cb=20250507043056', shortTitle: '群岛开荒防漏' },
+  { id: 'hero-2', order: 2, views24h: 1580000, engagement: 0.94, freshness: 0.98, sponsored: false, tag: 'Port Gellhorn 扫荡专题', title: '8 把传奇武器与 UFO 2314 永久加成', desc: '树顶沙发左轮、4 组固定地堡密码与星光旅馆 UFO 营救，一键进入区域扫荡模式逐项勾选。', ctaText: '打开区域扫荡工作台', ctaHref: '#sweep', image: 'assets/port-gellhorn.jpg', fallback: 'https://i.ytimg.com/vi/0NIez05L0YE/hqdefault.jpg', shortTitle: 'Port Gellhorn 扫荡' },
+  { id: 'hero-3', order: 3, views24h: 1227918, engagement: 0.93, freshness: 0.96, sponsored: false, tag: 'Leonida Keys 开荒防漏', title: '第一章离岛前绝不能漏的隐藏收集', desc: 'Tourist Trap 任务会清空 Jason 旧宅与现金，先去卧室地板藏钱并领完门口信箱赏金。', ctaText: '查看章节避坑路线', ctaHref: '#chapters', image: 'assets/leonida-keys.jpg', fallback: 'https://i.ytimg.com/vi/FvbVccBoVds/hqdefault.jpg', shortTitle: '群岛开荒防漏' },
   { id: 'hero-4', order: 4, views24h: 1040000, engagement: 0.91, freshness: 0.93, sponsored: false, tag: 'Grassrivers 湿地探索', title: '臭鼬猿、巨型变异蟹与水下秘宝', desc: '深入草河沼泽追踪夜间怪谈生物与 33 处水下探索，出发前记得查清油量与后备箱配枪。', ctaText: '查看隐藏彩蛋解析', ctaHref: '#mechanics', image: 'assets/grassrivers.jpg', fallback: 'https://i.ytimg.com/vi/X08cBTfKpP4/hqdefault.jpg', shortTitle: '草河湿地怪谈' },
   { id: 'hero-5', order: 5, views24h: 960000, engagement: 0.89, freshness: 0.92, sponsored: false, tag: 'Mount Kalaga 峡谷', title: '100% 奖杯追踪与战绩海报一键生成', desc: '勾选 12 项核心白金权重，一键导出高清 PNG 战绩卡晒给好友，自带双主角犯罪档案评级。', ctaText: '生成我的战绩海报', ctaHref: '#checklist', image: 'assets/mount-kalaga.jpg', fallback: 'https://i.redd.it/lf1754vhgw3f1.jpeg', shortTitle: '100% 战绩海报' },
   { id: 'hero-6', order: 6, views24h: 910000, engagement: 0.90, freshness: 0.95, sponsored: false, tag: '劫案利润决策器', title: '从第 1 章到第 4 章 20 万金库最优路线', desc: '实测 Yasmani 与 Tyrone 销赃差价，结合 8 袋厢车与双人传袋算出单趟最高净收益。', ctaText: '打开销赃计算器', ctaHref: '#sweep', image: 'https://www.rockstargames.com/VI/_next/static/media/Jason_and_Lucia_Beach_landscape.0419q._86ukpt.jpg?akim=1&imdensity=1&imwidth=3840', fallback: 'https://i.ytimg.com/vi/uObAnlU0MgI/hqdefault.jpg', shortTitle: '劫案销赃计算器' },
@@ -58,12 +58,17 @@ const VIDEOS = [
   { id: 'UOOoHDzfhWk', title: 'Black Widow Emerus 免费集装箱拿法与第 3 章切割工具', channel: 'Kyr Speedy', cat: 'vehicles', views: 960000, hoursAgo: 17, duration: '10:33', note: '省下巨额购车款的 8.9 极速超跑白嫖路线' },
   { id: '--mU3IJVZ6I', title: '第 3 章易错过传奇手枪 Money Bag 1992 拿法提醒', channel: 'WikiGameGuides', cat: 'weapons', views: 880000, hoursAgo: 13, duration: '09:15', note: '任务 The Missing Link 阶段务必顺手拿走' },
   { id: 'SnsyDUm6zfw', title: 'Gambit Bay 摩托艇 Cool Dog 彩蛋与 $1,218 钱包彩蛋', channel: 'Easter Egg Hunter', cat: 'easter', views: 840000, hoursAgo: 20, duration: '07:56', note: '海湾巡游路线顺手拿隐藏钱包' },
-  { id: 'LiY1RXa9gGw', title: '隐藏电台 The Vault 解锁：夜店 WAiNK 扫描毒气面具海报', channel: 'GTAMen', cat: 'easter', views: 790000, hoursAgo: 16, duration: '08:41', note: 'Downtown Vice City 夜店内部实拍位置' }
+  { id: 'LiY1RXa9gGw', title: '隐藏电台 The Vault 解锁：夜店 WAiNK 扫描毒气面具海报', channel: 'GTAMen', cat: 'easter', views: 790000, hoursAgo: 16, duration: '08:41', note: 'Downtown Vice City 夜店内部实拍位置' },
+  { id: 'ytOHzoDyMIQ', title: '*NEW* UNLIMITED MONEY GLITCH IN GTA 6!（免存档无限刷钱新漏洞实测）', channel: 'MrDalekJD', cat: 'money', views: 663914, hoursAgo: 5, duration: '01:25', note: '过去 24 小时最高播放刷钱教学，无需反复切存档即可循环触发' },
+  { id: 'GotN7bLCgpU', title: 'GTA 6 - What\'s New In the First Patch?（首日补丁 1.002.001 更新全拆解）', channel: 'IGN', cat: 'starter', views: 634658, hoursAgo: 6, duration: '01:14', note: '官方首个更新修复 7 项恶性 Bug、补回缺失特性并升级雨天粒子画质' },
+  { id: '3-DB9LLfYTo', title: '21 Secrets You Will REGRET Missing In GTA 6!（21 个错过必悔的隐藏秘密）', channel: 'MrRoflWaffles', cat: 'easter', views: 330889, hoursAgo: 8, duration: '12:01', note: '涵盖红鹦鹉提示藏钱格栅、限时传奇枪与早期高价值隐藏互动' },
+  { id: 'ZoDqVAmqBOg', title: 'First GTA 6 Update Adds Missing Feature & More...（1.002.001 补丁实机对比）', channel: 'JorRaptor', cat: 'starter', views: 127949, hoursAgo: 7, duration: '01:56', note: '实测首日补丁新增功能细节与主机帧率稳定性提升' },
+  { id: '91q_-8PHRgc', title: 'GTA 6: Safe Codes You Need (Save This)（全图必存保险箱与门禁密码速查）', channel: 'Manatee GTA', cat: 'weapons', views: 91123, hoursAgo: 9, duration: '00:52', note: '52 秒速记全图固定门禁密码与传奇武器保险箱开锁码' }
 ];
 
 const SWEEP_DATA = {
   'port-gellhorn': {
-    name: 'Port Gellhorn 格尔霍恩港', sub: '第 2 章核心扫荡区 / 8 把传奇武器 + UFO 2314', image: 'assets/port-gellhorn.jpg', fallback: 'https://static.wikia.nocookie.net/gtawiki/images/9/9f/PortGellhorn-GTAVI-CroppedPostcard.png/revision/latest?cb=20250507043050',
+    name: 'Port Gellhorn 格尔霍恩港', sub: '第 2 章核心扫荡区 / 8 把传奇武器 + UFO 2314', image: 'assets/port-gellhorn.jpg', fallback: 'https://i.ytimg.com/vi/0NIez05L0YE/hqdefault.jpg',
     items: [
       { id: 'pg-1', title: 'Couch Potato Mustang .357（传奇左轮）', detail: 'Tanglewood Ln 打断树上吊着沙发的绳索并坐上去触发' },
       { id: 'pg-2', title: 'Clunker 556（传奇步枪）', detail: 'Brooks Boatworks 船厂二楼办公室桌旁直接拾取' },
@@ -86,7 +91,7 @@ const SWEEP_DATA = {
     ]
   },
   'leonida-keys': {
-    name: 'Leonida Keys 群岛', sub: '第 1 章开荒必扫 / 藏钱防漏 + 复古罪城起点', image: 'assets/leonida-keys.jpg', fallback: 'https://static.wikia.nocookie.net/gtawiki/images/5/59/LeonidaKeys-GTAVI-CroppedPostcard.png/revision/latest?cb=20250507043056',
+    name: 'Leonida Keys 群岛', sub: '第 1 章开荒必扫 / 藏钱防漏 + 复古罪城起点', image: 'assets/leonida-keys.jpg', fallback: 'https://i.ytimg.com/vi/FvbVccBoVds/hqdefault.jpg',
     items: [
       { id: 'lk-1', title: 'Jason 卧室松动地板藏钱 + 门口信箱领赏', detail: '解锁 BuckMe 银行前所有现金务必存地板，离岛前清光' },
       { id: 'lk-2', title: 'Key Lento 无线电塔彩蛋开关', detail: '登顶拨动电源并按身后按钮，开启 12 座 LPL 变电站传送门线' },
@@ -117,8 +122,8 @@ const SWEEP_DATA = {
 
 const REGIONS = [
   { name: 'Vice City 罪恶都市', county: 'Vice-Dale 郡', desc: '第 3 与第 4 章主战场，涵盖 Ocean Beach、Downtown 与小古巴。聚集珠宝店、Randy 超跑订单、The Vault 隐藏电台与大型金库。', image: 'assets/vice-city.jpg', fallback: 'https://vice6map.com/assets/screenshots/vice-city-ocean-drive.jpg' },
-  { name: 'Leonida Keys 群岛', county: 'Mariana 郡', desc: '第 1 章开荒起点 Key Lento 所在海域。包含 Jason 卧室藏钱暗格、门口赏金信箱、无线电塔彩蛋起点及浅海沉船秘宝。', image: 'assets/leonida-keys.jpg', fallback: 'https://static.wikia.nocookie.net/gtawiki/images/5/59/LeonidaKeys-GTAVI-CroppedPostcard.png/revision/latest?cb=20250507043056' },
-  { name: 'Port Gellhorn 格尔霍恩港', county: 'Kelly 郡', desc: '第 2 章核心工业与公路城镇。藏有 8 把高性价比传奇武器、Moses 偷车销赃线，以及星光旅馆东侧夜间 UFO 遭遇点。', image: 'assets/port-gellhorn.jpg', fallback: 'https://static.wikia.nocookie.net/gtawiki/images/9/9f/PortGellhorn-GTAVI-CroppedPostcard.png/revision/latest?cb=20250507043050' },
+  { name: 'Leonida Keys 群岛', county: 'Mariana 郡', desc: '第 1 章开荒起点 Key Lento 所在海域。包含 Jason 卧室藏钱暗格、门口赏金信箱、无线电塔彩蛋起点及浅海沉船秘宝。', image: 'assets/leonida-keys.jpg', fallback: 'https://i.ytimg.com/vi/FvbVccBoVds/hqdefault.jpg' },
+  { name: 'Port Gellhorn 格尔霍恩港', county: 'Kelly 郡', desc: '第 2 章核心工业与公路城镇。藏有 8 把高性价比传奇武器、Moses 偷车销赃线，以及星光旅馆东侧夜间 UFO 遭遇点。', image: 'assets/port-gellhorn.jpg', fallback: 'https://i.ytimg.com/vi/0NIez05L0YE/hqdefault.jpg' },
   { name: 'Grassrivers 湿地沼泽', county: 'Leonard 郡', desc: '鳄鱼与气垫船纵横的原始湿地。出没臭鼬猿 Skunk Ape、巨型变异蟹与多处非法帮派藏匿点，长途穿越务必盯紧油量。', image: 'assets/grassrivers.jpg', fallback: 'https://i.ytimg.com/vi/X08cBTfKpP4/hqdefault.jpg' },
   { name: 'Ambrosia 工业腹地', county: 'Leonard 郡东缘', desc: '重工业与货运枢纽区域，遍布地下飙车、重型货车截劫路线与高危帮派据点，适合刷 200 辆载具扫描进度。', image: 'assets/ambrosia.jpg', fallback: 'https://preview.redd.it/absolutely-breathtaking-screenshot-of-ambrosia-from-gta-6-v0-k78ocmce05af1.jpeg?auto=webp&s=d7c4ff612e7d52f2c3e4f6799ad3fb1c522d855d' },
   { name: 'Mount Kalaga 国家公园', county: 'Lummox 郡北部', desc: '盘山峡谷与森林秘境，分布粉色发光陨石、稀有野生动物研究点、无人机高速穿峡赛道以及多处隐藏地堡入口。', image: 'assets/mount-kalaga.jpg', fallback: 'https://i.redd.it/lf1754vhgw3f1.jpeg' }
@@ -136,7 +141,11 @@ const MECHANICS = [
   { id: 'bunker-codes', cat: 'weapons', meta: '武器与密码 / 实测密码合集', title: '四大隐藏地堡、海岛门禁与保险箱密码', body: 'Big Pine 地堡输入 085355 拿 Cold War 556；Sharktooth 岛门禁 010317、保险箱 2975 拿 Russo\'s 1992；Tola Bay 电脑密码 President Russo 0612；Pelican Valley 保险箱 0072、门禁 0212 拿 Crabshack VF5。', tip: '输入提示：上述 4 组为固定剧情/探索密码，而普通商铺与银行保险箱仍为每次随机密码。', spoiler: false },
   { id: 'vice-portal', cat: 'easter', meta: '隐藏彩蛋 / 1980s 复古罪城', title: '汤米花衬衫与 1980 年代复古罪城传送门', body: '先登顶 Key Lento 无线电塔拨动电源并按下身后按钮，随后严格按 LIFE IS PASSING ME BY 字母顺序依次访问全图 12 座 LPL 变电站，即可开启 1980s 复古罪城传送门。', tip: '变电站分布：Downtown、Balsero、Key Lento、Penmarch Isle、Crosstown、Port Gellhorn、Hamlet（3 处）、Gloriana Key、North Mariana County。', spoiler: true },
   { id: 'ufo-2314', cat: 'easter', meta: '隐藏彩蛋 / 永久三维加成', title: 'UFO 遭遇与 2314 研究设施营救外星人', body: '第 2 章起夜晚前往 Port Gellhorn 东侧 Starlet Motel 附近可目击 UFO 并解锁奖杯 The Truth Is Out There；随后前往南部研究设施输入门禁 2314 营救活体外部生命，即可获得永久生命值、体力与聚焦上限加成。', tip: '收益评级：全作实用价值最高的隐藏彩蛋，建议第 2 章一解锁就优先完成。', spoiler: true },
-  { id: 'secret-radio', cat: 'easter', meta: '隐藏彩蛋 / 隐藏电台与怪谈', title: 'The Vault 隐藏电台、Cool Dog 与臭鼬猿', body: '在 Downtown Vice City 的 The Vault 夜店内用 WAiNK 应用（R1/RB）扫描红色毒气面具海报即可解锁隐藏电台；Gambit Bay 水上摩托遇 Cool Dog 可得 $1,218 钱包；Gullet 沼泽可遇臭鼬猿与巨型变异蟹；Jason 屋外停着 GTA 5 麦克的游艇。', tip: '补充彩蛋：Washington Island 可找到 Dexter 公寓与船只，Mount Kalaga 山顶藏有发光粉色陨石。', spoiler: true }
+  { id: 'secret-radio', cat: 'easter', meta: '隐藏彩蛋 / 隐藏电台与怪谈', title: 'The Vault 隐藏电台、Cool Dog 与臭鼬猿', body: '在 Downtown Vice City 的 The Vault 夜店内用 WAiNK 应用（R1/RB）扫描红色毒气面具海报即可解锁隐藏电台；Gambit Bay 水上摩托遇 Cool Dog 可得 $1,218 钱包；Gullet 沼泽可遇臭鼬猿与巨型变异蟹；Jason 屋外停着 GTA 5 麦克的游艇。', tip: '补充彩蛋：Washington Island 可找到 Dexter 公寓与船只，Mount Kalaga 山顶藏有发光粉色陨石。', spoiler: true },
+  { id: 'black-eagle-codes', cat: 'weapons', meta: '武器与密码 / Balsero 军火库双传奇枪', title: 'Black Eagle 仓库双密码（789987 / 031462）与两把传奇武器', body: '位于罪恶都市西侧 Balsero（Griffin 靶场旁 Black Eagle 枪店右侧）。先进枪店后台员工室，用相机或瞄准镜放大对面墙上的靶纸读出办公室门禁 789987；从装卸区溜进仓库输入 789987 进入办公室，查看电脑与绿色便签（店主母亲生日）得到保险箱密码 031462（首位 0 必填），打开即得银色虎纹传奇手枪 Black Eagle Import Kalinga .50。', tip: '第二把传奇枪：前往仓库后方铁丝网围栏区，开叉车移开挡路木箱即可打开武器箱拿走传奇步枪 Black Eagle Import M306 TMR。', spoiler: false },
+  { id: 'cartel-heist-150k', cat: 'economy', meta: '经济与劫案 / 第 3 章终局完美分红', title: '第 3 章终局 Cartel Heist（Sinfrontera 银行）$150,000 满分攻略', body: '第 3 章收官劫案洗劫贩毒集团洗钱银行 Sinfrontera National Bank（解锁奖杯 Break the Bank）。警报触发仅得 $100,000，普通通关 $120,000，零失误完美执行可拿满 $150,000。前置任务 Hidden Charges 务必炸毁全部 3 座信号塔争取最长金库时间，Company Property 保全全部货物。', tip: '完美细节：大厅听 Karim 口令再击晕标记保安，金库内避开地面电缆，优先装大捆钞票；突围时射击守卫手部夺枪（非致命）以保住 Professional 犯罪档案评级。', spoiler: true },
+  { id: 'ch1-free-weapons-parrot', cat: 'weapons', meta: '武器与密码 / 第 1 章防漏与红鹦鹉藏钱', title: '第 1 章 9 把免费武器、CLEAVES 三连密码与会说话的红鹦鹉', body: '第 1 章任务 Don Gone 摧毁 Donnie 汽车前，务必先开后备箱拿走易错过左轮 Donnie\'s H&L .38（拖车内还有专属飞行员墨镜）。Pelican Valley 完整三步解锁：先合屋外电闸，看卧室地板字迹后在电脑输入密码 CLEAVES，再用 0072 开主保险箱（含 $8,000 标记钞票）、0212 开船屋门禁拿传奇步枪 Crabshack VF5。', tip: '红鹦鹉现金暗格：帮邻居 Shirley 跑腿买朗姆酒时翻过侧栏击败匪徒，听笼中红鹦鹉提示“发电机旁有钱”，撬开发电机旁墙面格栅即可拿走大额开荒现金。', spoiler: false },
+  { id: 'patch-1002001-timed-weapons', cat: 'easter', meta: '官方补丁与限时武器 / Update 1.002.001', title: '首日补丁 1.002.001 更新要点与两把限时窗口传奇武器', body: 'Rockstar 已推送首个正式补丁 1.002.001，修复 7 项玩家高频反馈的卡死与物理异常、补回缺失交互特性，并显著改善雨天积水反射与粒子表现。同时社区破译出两把严格卡游戏内时间窗口的隐藏传奇武器。', tip: '限时点位：正午 12:00 至 13:00 前往 Ocean Beach 的 Sunlite Motel 二楼红遮阳篷房间互动再走下远端楼梯，开门可得传奇微冲 Little Friend W-10；夜间读 St. Lucia 灯塔日志后于凌晨 01:30 潜入 Little Hardin Island 东侧海底沉船可拿 Cursed Knife 诅咒匕首。', spoiler: false }
 ];
 
 const SUPERCARS = [
@@ -308,7 +317,7 @@ function renderVideos() {
   const visible = fullList.slice(0, state.videoLimit);
   document.getElementById('videoGrid').innerHTML = visible.map(v => {
     const cKey = 'v-' + v.id; const cCount = (state.comments[cKey] || []).length;
-    return `<article class="video-item" id="video-${v.id}"><button type="button" class="video-cover-btn" data-play-video="${v.id}" aria-label="站内播放 ${escapeHtml(v.title)}"><img src="https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg" alt="${escapeHtml(v.title)}" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg';"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar tabular"><span class="video-heat-num">热度 ${v.heat}</span><span>${v.duration}</span></div></button><div class="video-meta-row tabular"><span>${escapeHtml(v.channel)}</span><span>${formatViews(v.views)}</span></div><button type="button" class="video-title-btn" data-play-video="${v.id}">${escapeHtml(v.title)}</button><p style="font-size:var(--text-sm); color:var(--text-muted);">${escapeHtml(v.note)}</p><div class="video-foot-row"><button type="button" class="text-action-btn" style="color:var(--accent); font-weight:700;" data-play-video="${v.id}">站内播放</button><button type="button" class="text-action-btn tabular" data-play-video="${v.id}">评论 (${cCount})</button></div></article>`;
+    return `<article class="video-item" id="video-${v.id}"><div class="video-media-slot" id="slot-${v.id}"><button type="button" class="video-cover-btn" data-inline-play="${v.id}" aria-label="当前卡片直接播放 ${escapeHtml(v.title)}"><img src="https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg" alt="${escapeHtml(v.title)}" loading="lazy" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg';"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar tabular"><span class="video-heat-num">热度 ${v.heat}</span><span>${v.duration}</span></div></button></div><div class="video-meta-row tabular"><span>${escapeHtml(v.channel)}</span><span>${formatViews(v.views)}</span></div><button type="button" class="video-title-btn" data-play-video="${v.id}">${escapeHtml(v.title)}</button><p style="font-size:var(--text-sm); color:var(--text-muted);">${escapeHtml(v.note)}</p><div class="video-foot-row"><button type="button" class="text-action-btn" style="color:var(--accent); font-weight:700;" data-play-video="${v.id}">影院大屏播放</button><button type="button" class="text-action-btn tabular" data-play-video="${v.id}">评论 (${cCount})</button></div></article>`;
   }).join('');
   const wrap = document.getElementById('videoLoadMoreWrap');
   if (visible.length < fullList.length) {
@@ -465,10 +474,11 @@ function renderVideoModalComments() {
   const cKey = 'v-' + state.activeVideoId, list = document.getElementById('vmCommentList'), items = state.comments[cKey] || [];
   list.innerHTML = items.length ? items.map(c => `<div class="chat-msg"><div class="chat-msg-head"><span class="chat-msg-author">${escapeHtml(c.author)}</span><span class="tabular">${escapeHtml(c.time)}</span></div><p style="font-size:var(--text-sm); color:var(--text-primary);">${escapeHtml(c.text)}</p></div>`).join('') : '<p class="empty-state" style="padding:0.75rem 0;">暂无评论，写下你的第一条实测反馈。</p>';
 }
+function playInlineVideo(vid){const slot=document.getElementById("slot-"+vid),v=VIDEOS.find(x=>x.id===vid);if(!slot||!v)return;slot.innerHTML=`<iframe class="video-inline-iframe" src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&playsinline=1" title="${escapeHtml(v.title)}" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;}
 function openVideoPlayer(vid) {
   const v = VIDEOS.find(x => x.id === vid); if (!v) return;
   openOverlay(videoModal); state.activeVideoId = vid;
-  document.getElementById('videoIframeWrap').innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0" title="${escapeHtml(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  document.getElementById('videoIframeWrap').innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0" title="${escapeHtml(v.title)}" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
   document.getElementById('vmTitle').textContent = v.title;
   document.getElementById('vmMeta').textContent = `${v.channel} / ${formatViews(v.views)} / 时长 ${v.duration}`;
   document.getElementById('vmNote').textContent = v.note;
@@ -477,6 +487,8 @@ function openVideoPlayer(vid) {
 }
 
 document.body.addEventListener('click', (e) => {
+  const pinBtn = e.target.closest('[data-copy-pin]'); if (pinBtn) { copyText(pinBtn.dataset.copyPin, '已复制密码：' + pinBtn.dataset.copyPin); return; }
+  const inlineBtn = e.target.closest('[data-inline-play]'); if (inlineBtn) { playInlineVideo(inlineBtn.dataset.inlinePlay); return; }
   const playBtn = e.target.closest('[data-play-video]');
   if (playBtn) { openVideoPlayer(playBtn.dataset.playVideo); return; }
   const cBtn = e.target.closest('button[data-open-comments]');
