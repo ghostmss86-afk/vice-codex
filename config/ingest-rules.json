@@ -1,15 +1,24 @@
 {
-  "version": "1.0",
-  "description": "Smart weighted scoring & quality-gate rules for VICE CODEX cloud video auto-ingestion (Zero LLM, pure algorithmic).",
+  "version": "1.1",
+  "description": "Smart weighted scoring & quality-gate rules for VICE CODEX cloud video auto-ingestion (Zero LLM, auto-bootstrap to 1000+ then strict maintenance).",
+  "bootstrap": {
+    "target_total_videos": 1200,
+    "per_query": 60,
+    "min_quality_score": 45,
+    "min_views": 500,
+    "max_new_per_run": 1500,
+    "max_per_category_per_run": 350
+  },
   "admission": {
+    "per_query": 35,
     "min_quality_score": 58,
     "min_views": 2500,
     "trusted_creator_min_views": 800,
     "min_duration_sec": 20,
     "max_duration_sec": 7200,
     "max_cloud_videos": 5000,
-    "max_new_per_run": 80,
-    "max_per_category_per_run": 20
+    "max_new_per_run": 120,
+    "max_per_category_per_run": 30
   },
   "weights": {
     "views": 0.35,
@@ -19,11 +28,11 @@
     "duration_fit": 0.10
   },
   "benchmarks": {
-    "views_log_floor": 3.0,
+    "views_log_floor": 2.7,
     "views_log_ceiling": 6.0,
     "velocity_views_per_hour_full": 5000,
     "optimal_duration_min_sec": 45,
-    "optimal_duration_max_sec": 1500
+    "optimal_duration_max_sec": 1800
   },
   "trusted_creators": [
     "T5G",
@@ -49,7 +58,11 @@
     "GTAMen",
     "Arekkz Gaming",
     "GameSight",
-    "Manatee GTA"
+    "Manatee GTA",
+    "MrBossFTW",
+    "Nought",
+    "Kyr Speedy",
+    "Dr Mod"
   ],
   "high_signal_keywords": [
     "guide",
@@ -75,7 +88,14 @@
     "trophy",
     "cheat",
     "missable",
-    "free"
+    "free",
+    "walkthrough",
+    "details",
+    "map",
+    "car",
+    "weapon",
+    "gun",
+    "best"
   ],
   "blocked_keywords": [
     "trailer reaction",
@@ -91,17 +111,41 @@
     "gta 5 mod"
   ],
   "queries": [
-    { "cat": "money", "q": "GTA 6 best money making method heist glitch" },
-    { "cat": "money", "q": "GTA 6 bank robbery vault guide payout" },
-    { "cat": "weapons", "q": "GTA 6 legendary weapons locations safe codes" },
-    { "cat": "weapons", "q": "GTA 6 hidden bunker secret guns location" },
-    { "cat": "vehicles", "q": "GTA 6 fastest supercars customization secret car" },
-    { "cat": "vehicles", "q": "GTA 6 free rare car spawn location mod shop" },
-    { "cat": "easter", "q": "GTA 6 easter eggs secrets mysteries details" },
-    { "cat": "easter", "q": "GTA 6 UFO alien ghost ship hidden details" },
-    { "cat": "starter", "q": "GTA 6 tips tricks guide things you missed" },
+    { "cat": "money", "q": "GTA 6 best money making method guide" },
+    { "cat": "money", "q": "GTA 6 unlimited money glitch fast cash" },
+    { "cat": "money", "q": "GTA 6 bank robbery vault heist walkthrough" },
+    { "cat": "money", "q": "GTA 6 cartel heist max payout guide" },
+    { "cat": "money", "q": "GTA 6 fence locations sell stolen cars jewelry" },
+    { "cat": "money", "q": "GTA 6 solo money farm per hour" },
+    { "cat": "weapons", "q": "GTA 6 all legendary weapons locations" },
+    { "cat": "weapons", "q": "GTA 6 all safe codes keypad bunker codes" },
+    { "cat": "weapons", "q": "GTA 6 hidden secret guns free early" },
+    { "cat": "weapons", "q": "GTA 6 Port Gellhorn legendary weapons" },
+    { "cat": "weapons", "q": "GTA 6 Black Eagle warehouse safe code weapon" },
+    { "cat": "weapons", "q": "GTA 6 best weapons loadout customization" },
+    { "cat": "vehicles", "q": "GTA 6 fastest supercars top speed tested" },
+    { "cat": "vehicles", "q": "GTA 6 car customization mod shops tuning" },
+    { "cat": "vehicles", "q": "GTA 6 free secret car spawn locations" },
+    { "cat": "vehicles", "q": "GTA 6 Thrax Emerus how to get free" },
+    { "cat": "vehicles", "q": "GTA 6 street racing drift cars guide" },
+    { "cat": "vehicles", "q": "GTA 6 boats helicopters planes hidden vehicles" },
+    { "cat": "easter", "q": "GTA 6 easter eggs secrets mysteries" },
+    { "cat": "easter", "q": "GTA 6 insane details things you missed" },
+    { "cat": "easter", "q": "GTA 6 UFO alien 2314 easter egg" },
+    { "cat": "easter", "q": "GTA 6 ghost ship skunk ape bigfoot mystery" },
+    { "cat": "easter", "q": "GTA 6 retro Vice City portal Dexter Michael easter egg" },
+    { "cat": "easter", "q": "GTA 6 underwater secrets caves treasure map" },
+    { "cat": "starter", "q": "GTA 6 tips and tricks beginner guide" },
+    { "cat": "starter", "q": "GTA 6 best settings graphics controller PS5 Xbox" },
     { "cat": "starter", "q": "GTA 6 update patch notes new features" },
-    { "cat": "cheats", "q": "GTA 6 cheat codes 100 percent trophy guide" },
-    { "cat": "cheats", "q": "GTA 6 collectibles cards stunts walkthrough" }
+    { "cat": "starter", "q": "GTA 6 criminal profile focus mode combat guide" },
+    { "cat": "starter", "q": "GTA 6 chapter 1 missables things to do first" },
+    { "cat": "starter", "q": "GTA 6 wanted system police CCTV escape guide" },
+    { "cat": "cheats", "q": "GTA 6 all cheat codes PS5 Xbox" },
+    { "cat": "cheats", "q": "GTA 6 100 percent completion platinum trophy guide" },
+    { "cat": "cheats", "q": "GTA 6 collectible cards all locations" },
+    { "cat": "cheats", "q": "GTA 6 stunt jumps drone races shooting range gold" },
+    { "cat": "cheats", "q": "GTA 6 missable side missions optional quests" },
+    { "cat": "cheats", "q": "GTA 6 gang operations stash houses locations" }
   ]
 }

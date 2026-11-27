@@ -1,15 +1,20 @@
 name: Auto-Ingest High-Traffic GTA 6 Videos
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/auto-ingest-videos.yml'
+      - 'config/ingest-rules.json'
   schedule:
     # Runs every 30 minutes in the cloud; only commits & deploys when new qualifying videos are found
     - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
       per_query:
-        description: 'Max candidates to inspect per search query'
+        description: 'Override candidates per query (leave empty for auto bootstrap/maintenance)'
         required: false
-        default: '40'
+        default: ''
   repository_dispatch:
     types: [new-gta6-video]
 
@@ -23,6 +28,7 @@ concurrency:
 jobs:
   ingest:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,9 +43,9 @@ jobs:
       - name: Install yt-dlp
         run: python -m pip install --upgrade yt-dlp
 
-      - name: Scan YouTube & filter qualifying new GTA 6 videos
+      - name: Run cloud weighted auto-ingest engine
         env:
-          PER_QUERY: ${{ github.event.inputs.per_query || '35' }}
+          PER_QUERY_OVERRIDE: ${{ github.event.inputs.per_query || '' }}
         run: python scripts/ingest_videos.py
 
       - name: Auto-commit & trigger live deploy only if new quality videos were added
@@ -52,5 +58,5 @@ jobs:
           git config user.name "vice-codex-bot"
           git config user.email "vice-codex-bot@users.noreply.github.com"
           git add data/videos.json
-          git commit -m "chore(auto-ingest): publish cloud video batch (+total ${COUNT} cloud videos)"
+          git commit -m "chore(auto-ingest): publish cloud video batch (cloud pool: ${COUNT})"
           git push origin main

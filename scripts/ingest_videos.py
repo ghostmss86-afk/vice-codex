@@ -3,7 +3,7 @@
 VICE CODEX Cloud Auto-Ingest Engine (Zero-LLM, Pure Algorithmic).
 Runs entirely inside GitHub Actions on a cloud runner.
 Loads weighted scoring & quality-gate rules from config/ingest-rules.json.
-Only updates data/videos.json when new videos pass the weighted quality threshold.
+Auto-bootstraps to 1,200+ videos on first run, then switches to strict quality-gate maintenance.
 """
 
 import json
@@ -13,6 +13,7 @@ import re
 import subprocess
 import sys
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -21,7 +22,7 @@ APP_JS = ROOT / "app.js"
 DATA_FILE = ROOT / "data" / "videos.json"
 RULES_FILE = ROOT / "config" / "ingest-rules.json"
 
-PER_QUERY = int(os.environ.get("PER_QUERY", "35"))
+PER_QUERY_OVERRIDE = os.environ.get("PER_QUERY_OVERRIDE", "").strip()
 
 RELEVANCE_RE = re.compile(
     r"\bgta\s*(6|vi)\b|grand\s+theft\s+auto\s*(6|vi)\b|vice\s*city|leonida", re.I
@@ -122,28 +123,25 @@ def score_candidate(raw: dict, rules: dict, trusted_set: set[str]) -> tuple[floa
     dur = int(raw.get("duration") or 0)
     hours_ago = estimate_hours_ago(raw)
 
-    # 1. Views score (log10 normalized)
     log_v = math.log10(max(views, 1))
     v_floor = bench["views_log_floor"]
     v_ceil = bench["views_log_ceiling"]
     views_score = clamp01((log_v - v_floor) / max(0.1, v_ceil - v_floor))
 
-    # 2. Velocity score (views per hour with freshness curve)
     vph = views / max(1.0, hours_ago)
-    vel_score = clamp01(math.log10(max(vph, 1.0)) / math.log10(max(10.0, bench["velocity_views_per_hour_full"])))
+    vel_score = clamp01(
+        math.log10(max(vph, 1.0)) / math.log10(max(10.0, bench["velocity_views_per_hour_full"]))
+    )
 
-    # 3. Engagement & trusted creator score
     is_trusted = channel.lower() in trusted_set
     like_ratio = (likes / views) if (likes > 0 and views > 0) else 0.0
     eng_from_likes = clamp01(like_ratio / 0.04) if likes > 0 else 0.45
     creator_bonus = 0.35 if is_trusted else 0.0
     eng_score = clamp01(eng_from_likes * 0.7 + creator_bonus)
 
-    # 4. Keyword relevance score
     hits = sum(1 for kw in rules["high_signal_keywords"] if kw in title_low)
     rel_score = clamp01(0.4 + min(hits, 3) * 0.2)
 
-    # 5. Duration fit score
     opt_min = bench["optimal_duration_min_sec"]
     opt_max = bench["optimal_duration_max_sec"]
     if dur <= 0:
@@ -199,6 +197,7 @@ def fetch_query(query: str, limit: int) -> list[dict]:
 def main() -> int:
     rules = load_rules()
     adm = rules["admission"]
+    boot = rules.get("bootstrap", {})
     trusted_set = {c.lower() for c in rules["trusted_creators"]}
     blocked = [b.lower() for b in rules["blocked_keywords"]]
 
@@ -206,17 +205,40 @@ def main() -> int:
     existing = load_existing_cloud()
     seen_ids = set(baseline_ids) | {v["id"] for v in existing if isinstance(v, dict) and v.get("id")}
 
+    current_total = len(seen_ids)
+    in_bootstrap = bool(boot) and current_total < int(boot.get("target_total_videos", 1200))
+    mode_label = "BOOTSTRAP (1000+ Scale-Up)" if in_bootstrap else "MAINTENANCE (Strict Quality Gate)"
+
+    per_query = (
+        int(PER_QUERY_OVERRIDE)
+        if PER_QUERY_OVERRIDE.isdigit()
+        else int(boot.get("per_query", 60) if in_bootstrap else adm.get("per_query", 35))
+    )
+    min_score = float(boot.get("min_quality_score", 45) if in_bootstrap else adm["min_quality_score"])
+    min_views_base = int(boot.get("min_views", 500) if in_bootstrap else adm["min_views"])
+    max_new = int(boot.get("max_new_per_run", 1500) if in_bootstrap else adm["max_new_per_run"])
+    max_per_cat = int(
+        boot.get("max_per_category_per_run", 350) if in_bootstrap else adm["max_per_category_per_run"]
+    )
+
+    print(
+        f"Mode: {mode_label} | Current total: {current_total} | "
+        f"Queries: {len(rules['queries'])} x {per_query} | Min score: {min_score}"
+    )
+
+    raw_batches = []
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        future_map = {pool.submit(fetch_query, q["q"], per_query): q for q in rules["queries"]}
+        for fut in as_completed(future_map):
+            qobj = future_map[fut]
+            try:
+                raw_batches.append((qobj["cat"], fut.result()))
+            except Exception as exc:
+                print(f"[warn] query failed ({qobj['q']}): {exc}", file=sys.stderr)
+
     candidates = []
     scanned_count = 0
-
-    for qobj in rules["queries"]:
-        default_cat, query = qobj["cat"], qobj["q"]
-        try:
-            results = fetch_query(query, PER_QUERY)
-        except Exception as exc:
-            print(f"[warn] query failed ({query}): {exc}", file=sys.stderr)
-            continue
-
+    for default_cat, results in raw_batches:
         for raw in results:
             scanned_count += 1
             vid = str(raw.get("id") or "").strip()
@@ -233,14 +255,14 @@ def main() -> int:
             dur = int(raw.get("duration") or 0)
             channel = str(raw.get("channel") or raw.get("uploader") or "YouTube Creator").strip()
             is_trusted = channel.lower() in trusted_set
-            min_v = adm["trusted_creator_min_views"] if is_trusted else adm["min_views"]
+            min_v = min(min_views_base, adm["trusted_creator_min_views"]) if is_trusted else min_views_base
             if views < min_v:
                 continue
             if dur and (dur < adm["min_duration_sec"] or dur > adm["max_duration_sec"]):
                 continue
 
             q_score, breakdown = score_candidate(raw, rules, trusted_set)
-            if q_score < adm["min_quality_score"]:
+            if q_score < min_score:
                 continue
 
             cat = infer_category(title, default_cat)
@@ -264,21 +286,20 @@ def main() -> int:
                 }
             )
 
-    # Sort candidates by smart qualityScore first, then views, and enforce category balance
     candidates.sort(key=lambda x: (x["qualityScore"], x["views"]), reverse=True)
     cat_counts = Counter()
     admitted = []
     for item in candidates:
-        if len(admitted) >= adm["max_new_per_run"]:
+        if len(admitted) >= max_new:
             break
-        if cat_counts[item["cat"]] >= adm["max_per_category_per_run"]:
+        if cat_counts[item["cat"]] >= max_per_cat:
             continue
         cat_counts[item["cat"]] += 1
         admitted.append(item)
 
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if not admitted:
-        msg = f"Scanned {scanned_count} candidates; 0 new videos passed threshold (>= {adm['min_quality_score']})."
+        msg = f"Mode: {mode_label} | Scanned {scanned_count} candidates; 0 new videos passed threshold (>= {min_score})."
         print(msg)
         if summary_path:
             Path(summary_path).write_text(f"### VICE CODEX Cloud Auto-Ingest\n- {msg}\n", "utf-8")
@@ -293,7 +314,8 @@ def main() -> int:
         "updatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "count": len(merged),
         "ruleVersion": rules["version"],
-        "minQualityScore": adm["min_quality_score"],
+        "mode": mode_label,
+        "minQualityScore": min_score,
         "videos": merged,
     }
     DATA_FILE.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", "utf-8")
@@ -302,12 +324,16 @@ def main() -> int:
         f"- **[{v['qualityScore']}分 / {v['cat']}]** {v['title']} (`{v['channel']}`, {v['views']:,} views)"
         for v in admitted[:10]
     )
-    print(f"Scanned {scanned_count} candidates -> Admitted {len(admitted)} high-score videos -> Cloud total: {len(merged)}.")
+    print(
+        f"Mode: {mode_label} | Scanned {scanned_count} candidates -> "
+        f"Admitted {len(admitted)} videos -> Cloud total: {len(merged)}."
+    )
     if summary_path:
         Path(summary_path).write_text(
             f"### VICE CODEX Cloud Auto-Ingest Summary\n"
+            f"- **Mode**: {mode_label}\n"
             f"- **Scanned**: {scanned_count} candidates\n"
-            f"- **Admitted (Score >= {adm['min_quality_score']})**: +{len(admitted)} videos\n"
+            f"- **Admitted (Score >= {min_score})**: +{len(admitted)} videos\n"
             f"- **Cloud Total**: {len(merged)} videos\n\n"
             f"#### Top Admitted This Run\n{top_preview}\n",
             "utf-8",
