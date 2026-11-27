@@ -272,7 +272,6 @@ def main() -> int:
                 {
                     "id": vid,
                     "title": title,
-                    "enTitle": title,
                     "channel": channel,
                     "cat": cat,
                     "views": views,
@@ -281,8 +280,6 @@ def main() -> int:
                     "note": CAT_NOTE_ZH[cat],
                     "enNote": CAT_NOTE_EN[cat],
                     "qualityScore": q_score,
-                    "scoreBreakdown": breakdown,
-                    "ingestedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 }
             )
 
@@ -318,7 +315,7 @@ def main() -> int:
         "minQualityScore": min_score,
         "videos": merged,
     }
-    DATA_FILE.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", "utf-8")
+    DATA_FILE.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", "utf-8")
 
     top_preview = "\n".join(
         f"- **[{v['qualityScore']}分 / {v['cat']}]** {v['title']} (`{v['channel']}`, {v['views']:,} views)"

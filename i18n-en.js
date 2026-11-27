@@ -18,6 +18,10 @@ window.VICE_I18N_EN = {
     viewsK: 'K views',
     cinemaPlay: 'Cinema Player',
     commentsBtn: 'Comments',
+    shareBtn: 'Share',
+    linkCopied: 'Direct video link copied!',
+    cloudStatus: (n, ts) => `Cloud auto-synced (${ts}) · ${n} verified guides`,
+    noVideoMatch: 'No matching videos. Try another keyword or switch category.',
     loadMore: (shown, total) => `Load More Videos (${shown} / ${total} shown)`,
     calcEstLabel: 'Estimated Net Payout / Run',
     calcFenceLabel: 'Best Fence / Buyer:',
@@ -240,6 +244,7 @@ window.VICE_I18N_EN = {
     '#friendDrawer .drawer-foot .btn-primary': 'Save Card'
   },
   placeholders: {
+    '#videoSearchInput': 'Filter videos live (e.g. 789987 / Thrax / glitch)...',
     '#globalSearchInput': 'Search 70 videos, 789987, 031462, CLEAVES, 2314, 085355, Emerus, or legendaries...',
     '#chatAuthorInput': 'Handle',
     '#chatTextInput': 'Send a message to this channel...',

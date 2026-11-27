@@ -88,6 +88,8 @@ h3 { font-size: var(--text-body); font-weight: 700; line-height: 1.4; }
 .segmented button:last-child { border-right: 0; }
 .segmented button[aria-selected="true"] { background-color: var(--text-primary); color: var(--bg-page); }
 .sort-select { background-color: var(--bg-surface-alt); border: 1px solid var(--hairline-strong); border-radius: 2px; padding: 0.5rem 0.85rem; font-size: var(--text-sm); color: var(--text-primary); cursor: pointer; }
+.video-search-input { background-color: var(--bg-surface-alt); border: 1px solid var(--hairline-strong); border-radius: 2px; padding: 0.48rem 0.85rem; font-size: var(--text-sm); color: var(--text-primary); min-width: 240px; flex: 1 1 240px; max-width: 340px; }
+.cloud-status-line { font-size: var(--text-sm); color: var(--accent-teal); margin-top: 0.45rem; font-weight: 500; }
 
 .video-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.2rem 1.75rem; }
 .video-item { display: flex; flex-direction: column; gap: 0.65rem; border-bottom: 1px solid var(--hairline); padding-bottom: 1.3rem; }

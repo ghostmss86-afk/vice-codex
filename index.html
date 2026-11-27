@@ -80,8 +80,10 @@
           <div>
             <h2>70 条高流量实战视频库（站内直接播放）</h2>
             <p class="section-lead">按实时热度算法自动排位。点击卡片中心播放键直接在卡片内原位播放并支持全屏，点击底部按钮可开启影院大屏与评论侧栏。</p>
+            <div class="cloud-status-line tabular" id="videoCloudStatus"></div>
           </div>
           <div class="controls-row">
+            <input type="search" class="video-search-input" id="videoSearchInput" placeholder="实时筛选视频关键词（如 789987 / Thrax / glitch）..." aria-label="实时搜索视频">
             <div class="segmented" role="tablist" aria-label="筛选视频分类" id="videoCatTabs">
               <button type="button" role="tab" aria-selected="true" data-vcat="all">全部 70 条</button>
               <button type="button" role="tab" aria-selected="false" data-vcat="starter">开荒避坑</button>
@@ -525,6 +527,8 @@
   </aside>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./cloud-config.js"></script>
+  <script src="./supabase-sync.js"></script>
   <script src="./i18n-en.js"></script>
   <script src="./app.js"></script>
 </body>

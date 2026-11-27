@@ -261,7 +261,9 @@ function formatViews(n) {
 
 const state = {
   lang: detectDefaultLang(),
-  heroSort: 'heat', heroIndex: 0, videoCat: 'all', videoSort: 'heat', videoLimit: 12,
+  heroSort: 'heat', heroIndex: 0, videoCat: 'all', videoSort: 'heat', videoQuery: '', videoLimit: 12,
+  cloudUpdatedAt: '',
+  profile: loadStore('vc_player_profile', { handle: '', gameId: '', platform: 'PS5' }),
   activeSweepRegion: 'port-gellhorn', sweepChecked: loadStore('vc_v7_sweep', {}),
   mechCat: 'all', arsenalTab: 'cars', activeChapter: 1, spoilerSafe: false,
   checklist: loadStore('vc_v7_checklist', {}), posts: loadStore('vc_v7_posts', DEFAULT_POSTS),
@@ -271,6 +273,22 @@ const state = {
   comments: loadStore('vc_v7_comments', DEFAULT_COMMENTS),
   activeCommentKey: null, activeVideoId: null
 };
+function rememberPlayerHandle(raw) {
+  const h = String(raw || '').trim(); if (!h) return;
+  state.profile.handle = h.startsWith('@') ? h : '@' + h;
+  saveStore('vc_player_profile', state.profile);
+  applySavedProfileInputs();
+}
+function applySavedProfileInputs() {
+  if (state.profile.handle) {
+    ['chatAuthorInput', 'vmCommentAuthor', 'commentAuthor', 'postAuthor'].forEach(id => {
+      const el = document.getElementById(id); if (el && !el.value) el.value = state.profile.handle;
+    });
+  }
+  if (state.profile.gameId) {
+    const gid = document.getElementById('friendGameId'); if (gid && !gid.value) gid.value = state.profile.gameId;
+  }
+}
 
 const ZH_META = {
   title: document.title,
@@ -414,8 +432,15 @@ heroStage.addEventListener('mouseenter', () => clearInterval(heroAutoTimer));
 heroStage.addEventListener('mouseleave', restartHeroAuto);
 
 function getFilteredVideos() {
+  const q = state.videoQuery.trim().toLowerCase();
   let list = VIDEOS.map(v => ({ ...v, heat: calcVideoHeat(v) }));
   if (state.videoCat !== 'all') list = list.filter(v => v.cat === state.videoCat);
+  if (q) {
+    list = list.filter(raw => {
+      const v = getVideoCopy(raw);
+      return (raw.title + ' ' + v.title + ' ' + raw.channel + ' ' + (raw.note || '') + ' ' + (v.note || '')).toLowerCase().includes(q);
+    });
+  }
   if (state.videoSort === 'heat') list.sort((a, b) => b.heat - a.heat);
   if (state.videoSort === 'views') list.sort((a, b) => b.views - a.views);
   if (state.videoSort === 'newest') list.sort((a, b) => a.hoursAgo - b.hoursAgo);
@@ -435,6 +460,11 @@ function syncDynamicVideoCounts() {
   setText('#videos h2', en ? `${n} Top-Viewed Video Guides (Inline Playback)` : `${n} 条高流量实战视频库（站内直接播放）`);
   setText('#videoCatTabs button[data-vcat="all"]', en ? `All ${n}` : `全部 ${n} 条`);
   setText('.footer-inner span:last-child', en ? `${n} verified video guides, 8-pin code vault & 6 Leonida regions` : `已收录 ${n} 条实测高流量视频、中英双语切换、8 组全图门禁密码速查板与 6 大区域定制视觉`);
+  const statusEl = document.getElementById('videoCloudStatus');
+  if (statusEl && state.cloudUpdatedAt) {
+    const ts = state.cloudUpdatedAt.replace('T', ' ').replace('Z', ' UTC');
+    statusEl.textContent = en ? EN.ui.cloudStatus(n, ts) : `云端最近自动更新：${ts} · 已收录 ${n} 条高分实测视频`;
+  }
   const searchEl = document.getElementById('globalSearchInput');
   if (searchEl) searchEl.setAttribute('placeholder', en ? `Search ${n} videos, 789987, 031462, CLEAVES, 2314, 085355, Emerus, or legendaries...` : `搜索 ${n} 条视频、789987、031462、CLEAVES、2314、085355、Emerus 或传奇武器...`);
   if (HERO_SLIDES[0]) {
@@ -453,13 +483,20 @@ function renderVideos() {
   const fullList = getFilteredVideos();
   const visible = fullList.slice(0, state.videoLimit);
   const en = isEn();
-  document.getElementById('videoGrid').innerHTML = visible.map(raw => {
+  const grid = document.getElementById('videoGrid');
+  if (!visible.length) {
+    grid.innerHTML = `<p class="empty-state">${en ? EN.ui.noVideoMatch : '没有匹配到相关视频，试试换个关键词或切换分类。'}</p>`;
+    document.getElementById('videoLoadMoreWrap').innerHTML = '';
+    return;
+  }
+  grid.innerHTML = visible.map(raw => {
     const v = getVideoCopy(raw);
     const cKey = 'v-' + v.id; const cCount = (state.comments[cKey] || []).length;
     const heatLbl = en ? EN.ui.videoHeatPrefix : '热度';
     const playLbl = en ? EN.ui.cinemaPlay : '影院大屏播放';
     const cmtLbl = en ? EN.ui.commentsBtn : '评论';
-    return `<article class="video-item" id="video-${v.id}"><div class="video-media-slot" id="slot-${v.id}"><button type="button" class="video-cover-btn" data-inline-play="${v.id}" aria-label="${en ? 'Play inline ' : '当前卡片直接播放 '}${escapeHtml(v.title)}"><img src="https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg" alt="${escapeHtml(v.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg';"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar tabular"><span class="video-heat-num">${heatLbl} ${v.heat}</span><span>${v.duration}</span></div></button></div><div class="video-meta-row tabular"><span>${escapeHtml(v.channel)}</span><span>${formatViews(v.views)}</span></div><button type="button" class="video-title-btn" data-play-video="${v.id}">${escapeHtml(v.title)}</button><p style="font-size:var(--text-sm); color:var(--text-muted);">${escapeHtml(v.note)}</p><div class="video-foot-row"><button type="button" class="text-action-btn" style="color:var(--accent); font-weight:700;" data-play-video="${v.id}">${playLbl}</button><button type="button" class="text-action-btn tabular" data-play-video="${v.id}">${cmtLbl} (${cCount})</button></div></article>`;
+    const shareLbl = en ? EN.ui.shareBtn : '分享';
+    return `<article class="video-item" id="video-${v.id}"><div class="video-media-slot" id="slot-${v.id}"><button type="button" class="video-cover-btn" data-inline-play="${v.id}" aria-label="${en ? 'Play inline ' : '当前卡片直接播放 '}${escapeHtml(v.title)}"><img src="https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg" alt="${escapeHtml(v.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg';"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar tabular"><span class="video-heat-num">${heatLbl} ${v.heat}</span><span>${v.duration}</span></div></button></div><div class="video-meta-row tabular"><span>${escapeHtml(v.channel)}</span><span>${formatViews(v.views)}</span></div><button type="button" class="video-title-btn" data-play-video="${v.id}">${escapeHtml(v.title)}</button><p style="font-size:var(--text-sm); color:var(--text-muted);">${escapeHtml(v.note)}</p><div class="video-foot-row"><button type="button" class="text-action-btn" style="color:var(--accent); font-weight:700;" data-play-video="${v.id}">${playLbl}</button><div style="display:flex; gap:0.85rem;"><button type="button" class="text-action-btn" data-share-video="${v.id}">${shareLbl}</button><button type="button" class="text-action-btn tabular" data-play-video="${v.id}">${cmtLbl} (${cCount})</button></div></div></article>`;
   }).join('');
   const wrap = document.getElementById('videoLoadMoreWrap');
   if (visible.length < fullList.length) {
@@ -468,6 +505,10 @@ function renderVideos() {
     wrap.innerHTML = `<button type="button" class="btn-secondary tabular" id="loadMoreVideosBtn">${moreText}</button>`;
     document.getElementById('loadMoreVideosBtn').addEventListener('click', () => { state.videoLimit += step; renderVideos(); });
   } else { wrap.innerHTML = ''; }
+}
+const videoSearchInputEl = document.getElementById('videoSearchInput');
+if (videoSearchInputEl) {
+  videoSearchInputEl.addEventListener('input', (e) => { state.videoQuery = e.target.value; state.videoLimit = 12; renderVideos(); });
 }
 document.getElementById('videoCatTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-vcat]'); if (!btn) return; state.videoCat = btn.dataset.vcat; state.videoLimit = 12; document.querySelectorAll('#videoCatTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); renderVideos(); });
 document.getElementById('videoSortSelect').addEventListener('change', (e) => { state.videoSort = e.target.value; renderVideos(); });
@@ -597,7 +638,7 @@ document.getElementById('communityList').addEventListener('click', (e) => {
   if (upBtn) {
     const id = upBtn.dataset.upvote, post = state.posts.find(p => p.id === id); if (!post) return;
     if (state.upvoted[id]) { delete state.upvoted[id]; post.upvotes = Math.max(0, post.upvotes - 1); } else { state.upvoted[id] = true; post.upvotes += 1; }
-    saveStore('vc_v7_upvoted', state.upvoted); saveStore('vc_v7_posts', state.posts); renderCommunity(); return;
+    saveStore('vc_v7_upvoted', state.upvoted); saveStore('vc_v7_posts', state.posts); if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.updateUpvotes(post.id, post.upvotes); renderCommunity(); return;
   }
   const mdBtn = e.target.closest('button[data-copy-md]');
   if (mdBtn) { const raw = state.posts.find(x => x.id === mdBtn.dataset.copyMd); if (raw) { const p = getPostCopy(raw); copyText(`---\ntitle: "${p.title}"\nauthor: "${p.author}"\ncategory: "${p.category}"\nvideoUrl: "${p.videoUrl || ''}"\n---\n\n${p.body}\n`, isEn() ? EN.ui.toasts.prCopied : '已复制 GitHub PR 模板'); } }
@@ -622,9 +663,11 @@ document.getElementById('chatChannelTabs').addEventListener('click', (e) => { co
 document.getElementById('chatForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const authorRaw = document.getElementById('chatAuthorInput').value.trim(), text = document.getElementById('chatTextInput').value.trim(); if (!authorRaw || !text) return;
-  const author = authorRaw.startsWith('@') ? authorRaw : '@' + authorRaw, now = new Date(), time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  rememberPlayerHandle(authorRaw);
+  const author = state.profile.handle, now = new Date(), time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
   if (!state.chatMessages[state.chatChannel]) state.chatMessages[state.chatChannel] = [];
   state.chatMessages[state.chatChannel].push({ author, time, text }); saveStore('vc_v7_chat', state.chatMessages);
+  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.sendChat(state.chatChannel, author, text);
   document.getElementById('chatTextInput').value = ''; renderChat(); showToast(isEn() ? EN.ui.toasts.chatSent(EN.ui.chatChannels[state.chatChannel] || state.chatChannel) : '已发送到 ' + state.chatChannel);
 });
 
@@ -666,6 +709,7 @@ function openVideoPlayer(vid) {
 
 document.body.addEventListener('click', (e) => {
   const pinBtn = e.target.closest('[data-copy-pin]'); if (pinBtn) { copyText(pinBtn.dataset.copyPin, isEn() ? EN.ui.toasts.pinCopied(pinBtn.dataset.copyPin) : '已复制密码：' + pinBtn.dataset.copyPin); return; }
+  const shareBtn = e.target.closest('[data-share-video]'); if (shareBtn) { const url = location.origin + location.pathname + '#video-' + shareBtn.dataset.shareVideo; copyText(url, isEn() ? EN.ui.linkCopied : '已复制该条攻略视频直达链接'); return; }
   const inlineBtn = e.target.closest('[data-inline-play]'); if (inlineBtn) { playInlineVideo(inlineBtn.dataset.inlinePlay); return; }
   const playBtn = e.target.closest('[data-play-video]');
   if (playBtn) { openVideoPlayer(playBtn.dataset.playVideo); return; }
@@ -681,18 +725,22 @@ document.body.addEventListener('click', (e) => {
 document.getElementById('vmCommentForm').addEventListener('submit', (e) => {
   e.preventDefault(); if (!state.activeVideoId) return;
   const authorRaw = document.getElementById('vmCommentAuthor').value.trim(), text = document.getElementById('vmCommentText').value.trim(); if (!authorRaw || !text) return;
-  const cKey = 'v-' + state.activeVideoId, author = authorRaw.startsWith('@') ? authorRaw : '@' + authorRaw;
+  rememberPlayerHandle(authorRaw);
+  const cKey = 'v-' + state.activeVideoId, author = state.profile.handle;
   if (!state.comments[cKey]) state.comments[cKey] = [];
   state.comments[cKey].push({ author, time: isEn() ? EN.ui.justNow : '刚刚', text }); saveStore('vc_v7_comments', state.comments);
+  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.addComment(cKey, author, text);
   document.getElementById('vmCommentText').value = ''; renderVideoModalComments(); renderVideos(); showToast(isEn() ? EN.ui.toasts.videoCommented : '已发表视频评论');
 });
 
 document.getElementById('commentForm').addEventListener('submit', (e) => {
   e.preventDefault(); if (!state.activeCommentKey) return;
   const authorRaw = document.getElementById('commentAuthor').value.trim(), text = document.getElementById('commentBody').value.trim(); if (!authorRaw || !text) return;
-  const author = authorRaw.startsWith('@') ? authorRaw : '@' + authorRaw;
+  rememberPlayerHandle(authorRaw);
+  const author = state.profile.handle;
   if (!state.comments[state.activeCommentKey]) state.comments[state.activeCommentKey] = [];
   state.comments[state.activeCommentKey].push({ author, time: isEn() ? EN.ui.justNow : '刚刚', text }); saveStore('vc_v7_comments', state.comments);
+  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.addComment(state.activeCommentKey, author, text);
   document.getElementById('commentBody').value = '';
   document.getElementById('commentList').innerHTML = getLocalizedComments(state.activeCommentKey).map(c => `<div class="chat-msg"><div class="chat-msg-head"><span class="chat-msg-author">${escapeHtml(c.author)}</span><span class="tabular">${escapeHtml(c.time)}</span></div><p style="font-size:var(--text-sm); color:var(--text-primary);">${escapeHtml(c.text)}</p></div>`).join('');
   renderCommunity(); showToast(isEn() ? EN.ui.toasts.commented : '已发表评论');
@@ -702,17 +750,22 @@ document.getElementById('publishForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const title = document.getElementById('postTitle').value.trim(), authorRaw = document.getElementById('postAuthor').value.trim(), category = document.getElementById('postCategory').value, videoUrl = document.getElementById('postVideoUrl').value.trim(), body = document.getElementById('postContent').value.trim();
   if (!title || !authorRaw || !body) return;
-  const newPost = { id: 'p-' + Date.now(), title, author: authorRaw.startsWith('@') ? authorRaw : '@' + authorRaw, category, videoUrl, upvotes: 1, body };
+  rememberPlayerHandle(authorRaw);
+  const newPost = { id: 'p-' + Date.now(), title, author: state.profile.handle, category, videoUrl, upvotes: 1, body };
   state.posts.unshift(newPost); state.upvoted[newPost.id] = true; saveStore('vc_v7_posts', state.posts); saveStore('vc_v7_upvoted', state.upvoted);
-  e.target.reset(); closeAllOverlays(); renderCommunity(); document.getElementById('lounge').scrollIntoView({ behavior: 'smooth' }); showToast(isEn() ? EN.ui.toasts.guidePublished : '已发布攻略');
+  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.createPost(newPost);
+  e.target.reset(); applySavedProfileInputs(); closeAllOverlays(); renderCommunity(); document.getElementById('lounge').scrollIntoView({ behavior: 'smooth' }); showToast(isEn() ? EN.ui.toasts.guidePublished : '已发布攻略');
 });
 
 document.getElementById('friendForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const gameId = document.getElementById('friendGameId').value.trim(), platform = document.getElementById('friendPlatform').value, note = document.getElementById('friendNote').value.trim();
   if (!gameId || !note) return;
-  state.friends.unshift({ id: 'f-' + Date.now(), gameId, platform, note }); saveStore('vc_v7_friends', state.friends);
-  e.target.reset(); closeAllOverlays(); renderFriends(); showToast(isEn() ? EN.ui.toasts.friendSaved : '已保存名片');
+  state.profile.gameId = gameId; state.profile.platform = platform; saveStore('vc_player_profile', state.profile);
+  const card = { id: 'f-' + Date.now(), gameId, platform, note };
+  state.friends.unshift(card); saveStore('vc_v7_friends', state.friends);
+  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.createSquadCard(card);
+  e.target.reset(); applySavedProfileInputs(); closeAllOverlays(); renderFriends(); showToast(isEn() ? EN.ui.toasts.friendSaved : '已保存名片');
 });
 
 document.getElementById('exportJsonBtn').addEventListener('click', () => copyText(JSON.stringify({ project: 'VICE CODEX v8.0 (MIT)', exportedAt: new Date().toISOString(), videosCount: VIDEOS.length, posts: state.posts, friends: state.friends }, null, 2), isEn() ? EN.ui.toasts.jsonCopied : '已复制社区数据 JSON'));
@@ -758,13 +811,51 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight') stepHero(1);
 });
 
+async function syncCloudSocial() {
+  if (!window.VICE_CLOUD || !window.VICE_CLOUD.enabled) return;
+  const data = await window.VICE_CLOUD.fetchAll(); if (!data) return;
+  if (Array.isArray(data.posts) && data.posts.length) {
+    const seen = new Set(data.posts.map(p => p.id));
+    const mapped = data.posts.map(p => ({ id: p.id, title: p.title, author: p.author, category: p.category, videoUrl: p.video_url || '', upvotes: p.upvotes || 1, body: p.body }));
+    state.posts = mapped.concat(DEFAULT_POSTS.filter(d => !seen.has(d.id)));
+    renderCommunity();
+  }
+  if (Array.isArray(data.squad) && data.squad.length) {
+    const seen = new Set(data.squad.map(s => s.id));
+    const mapped = data.squad.map(s => ({ id: s.id, gameId: s.game_id, platform: s.platform, note: s.note }));
+    state.friends = mapped.concat(DEFAULT_FRIENDS.filter(d => !seen.has(d.id)));
+    renderFriends();
+  }
+  if (Array.isArray(data.chat) && data.chat.length) {
+    const grouped = JSON.parse(JSON.stringify(DEFAULT_CHAT));
+    data.chat.forEach(m => {
+      if (!grouped[m.channel]) grouped[m.channel] = [];
+      const t = (m.created_at || '').slice(11, 16) || 'live';
+      grouped[m.channel].push({ author: m.author, time: t, text: m.text });
+    });
+    state.chatMessages = grouped; renderChat();
+  }
+  if (Array.isArray(data.comments) && data.comments.length) {
+    const grouped = JSON.parse(JSON.stringify(DEFAULT_COMMENTS));
+    data.comments.forEach(c => {
+      if (!grouped[c.target_key]) grouped[c.target_key] = [];
+      const t = (c.created_at || '').slice(5, 16).replace('T', ' ') || 'live';
+      grouped[c.target_key].push({ author: c.author, time: t, text: c.text });
+    });
+    state.comments = grouped; renderVideos(); renderCommunity();
+  }
+}
+function checkHashDeepLink() {
+  const m = (location.hash || '').match(/^#video-([A-Za-z0-9_-]{11})$/);
+  if (m && VIDEOS.some(v => v.id === m[1])) openVideoPlayer(m[1]);
+}
 async function loadCloudVideos() {
   try {
     const res = await fetch('./data/videos.json', { cache: 'no-cache' });
     if (!res.ok) return;
     const payload = await res.json();
+    if (payload.updatedAt) state.cloudUpdatedAt = payload.updatedAt;
     const cloud = Array.isArray(payload.videos) ? payload.videos : [];
-    if (!cloud.length) return;
     const seen = new Set(VIDEOS.map(v => v.id));
     let added = 0;
     cloud.forEach(item => {
@@ -774,7 +865,9 @@ async function loadCloudVideos() {
         added += 1;
       }
     });
-    if (added > 0) { syncDynamicVideoCounts(); renderHero(); renderVideos(); }
+    if (added > 0 || state.cloudUpdatedAt) { syncDynamicVideoCounts(); renderHero(); renderVideos(); }
+    checkHashDeepLink();
   } catch (e) {}
 }
-renderAll(); restartHeroAuto(); loadCloudVideos();
+renderAll(); applySavedProfileInputs(); restartHeroAuto(); loadCloudVideos(); syncCloudSocial();
+if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) setInterval(syncCloudSocial, 20000);
