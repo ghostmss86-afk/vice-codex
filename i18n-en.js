@@ -1,7 +1,7 @@
 window.VICE_I18N_EN = {
   meta: {
-    title: 'VICE CODEX v8.0 - GTA 6 Gameplay Encyclopedia & Community',
-    description: 'VICE CODEX: Complete GTA 6 gameplay encyclopedia with 55 top-viewed video guides, an 8-pin keypad & safe code vault, 6 region sweep checklists, 127 legendary weapons, heist profit calculator, and 100% trophy poster generator.'
+    title: 'VICE CODEX v8.1 - GTA 6 Gameplay Encyclopedia & Community',
+    description: 'VICE CODEX: Complete GTA 6 gameplay encyclopedia with 70 top-viewed video guides, an 8-pin keypad & safe code vault, 6 region sweep checklists, 127 legendary weapons, heist profit calculator, and 100% trophy poster generator.'
   },
   ui: {
     langToggle: '中文',
@@ -94,14 +94,14 @@ window.VICE_I18N_EN = {
     sponsorCopyText: 'VICE CODEX v8.0 Sponsorship: Native hero carousel slots and footer console gear affiliate placements with zero pop-up ads.'
   },
   staticText: {
-    '.nav-links a[href="#videos"]': '55 Videos',
+    '.nav-links a[href="#videos"]': '70 Videos',
     '.nav-links a[href="#sweep"]': '2nd Screen',
     '.nav-links a[href="#regions"]': '6 Regions',
     '.nav-links a[href="#mechanics"]': 'Codes & Systems',
     '.nav-links a[href="#arsenal"]': 'Cars & Guns',
     '.nav-links a[href="#checklist"]': '100% Card',
     '.nav-links a[href="#lounge"]': 'Community',
-    '#mobileNav a[href="#videos"]': '55 Top Video Guides',
+    '#mobileNav a[href="#videos"]': '70 Top Video Guides',
     '#mobileNav a[href="#sweep"]': 'Region Sweep & Heist Calc',
     '#mobileNav a[href="#regions"]': '6 Leonida Regions',
     '#mobileNav a[href="#mechanics"]': 'Mechanics & Code Vault',
@@ -112,9 +112,9 @@ window.VICE_I18N_EN = {
     '#mobileSearchBtn': 'Search All',
     '#heroSortTabs button[data-hero-sort="heat"]': 'Live Heat',
     '#heroSortTabs button[data-hero-sort="editorial"]': 'Editorial Order',
-    '#videos h2': '55 Top-Viewed Video Guides (Inline Playback)',
+    '#videos h2': '70 Top-Viewed Video Guides (Inline Playback)',
     '#videos .section-lead': 'Ranked by live heat. Click the center play button to watch inline with fullscreen support, or open the cinema player with side comments.',
-    '#videoCatTabs button[data-vcat="all"]': 'All 55',
+    '#videoCatTabs button[data-vcat="all"]': 'All 70',
     '#videoCatTabs button[data-vcat="starter"]': 'Starter Tips',
     '#videoCatTabs button[data-vcat="money"]': 'Money & Heists',
     '#videoCatTabs button[data-vcat="weapons"]': 'Guns & Bunkers',
@@ -208,8 +208,8 @@ window.VICE_I18N_EN = {
     '#sponsor .sponsor-item:nth-child(3) .sponsor-kicker': 'Native Brand Slot / Open',
     '#sponsor .sponsor-item:nth-child(3) h3': 'Console Network & 4K OLED Showcase',
     '#sponsor .sponsor-item:nth-child(3) p': 'Native hero slide and footer placements for hardware, display, and network brands with zero intrusive pop-ups.',
-    '.footer-inner span:first-child': 'VICE CODEX v8.0 / MIT Open-Source GTA 6 Hub',
-    '.footer-inner span:last-child': '55 verified video guides, 8-pin code vault & 6 Leonida regions',
+    '.footer-inner span:first-child': 'VICE CODEX v8.1 / MIT Open-Source GTA 6 Hub',
+    '.footer-inner span:last-child': '70 verified video guides, 8-pin code vault & 6 Leonida regions',
     '#closeVideoModalBtn': 'Close',
     '#vmExtLink': 'Open original video on YouTube',
     '#vmCommentForm button[type="submit"]': 'Post',
@@ -240,7 +240,7 @@ window.VICE_I18N_EN = {
     '#friendDrawer .drawer-foot .btn-primary': 'Save Card'
   },
   placeholders: {
-    '#globalSearchInput': 'Search 55 videos, 789987, 031462, CLEAVES, 2314, 085355, Emerus, or legendaries...',
+    '#globalSearchInput': 'Search 70 videos, 789987, 031462, CLEAVES, 2314, 085355, Emerus, or legendaries...',
     '#chatAuthorInput': 'Handle',
     '#chatTextInput': 'Send a message to this channel...',
     '#vmCommentAuthor': 'Your handle',
@@ -264,7 +264,7 @@ window.VICE_I18N_EN = {
     { region: 'Port Gellhorn Facility', btn: 'Copy Code', reward: 'Permanent Health / Stamina / Focus', note: 'From Ch. 2 at night, spot the UFO east of Starlet Motel, then enter 2314 at the southern facility' }
   ],
   hero: {
-    'hero-1': { tag: 'Top Heat / 55 Inline Videos', title: 'Vice City Dusk Complete Gameplay Codex', desc: '55 verified top-viewed video guides, 8-pin code vault, 6 region sweep lists, and 127 legendary weapon locations built for your console second screen.', ctaText: 'Browse 55 Video Guides', shortTitle: 'Vice City Dusk' },
+    'hero-1': { tag: 'Top Heat / 70 Inline Videos', title: 'Vice City Dusk Complete Gameplay Codex', desc: '70 verified top-viewed video guides, 8-pin code vault, 6 region sweep lists, and 127 legendary weapon locations built for your console second screen.', ctaText: 'Browse 70 Video Guides', shortTitle: 'Vice City Dusk' },
     'hero-2': { tag: 'Port Gellhorn Sweep', title: '8 Legendary Weapons & UFO 2314 Permanent Buff', desc: 'Tree-hanging couch revolver, fixed bunker codes, and the Starlet Motel UFO rescue. Check off every item as you sweep.', ctaText: 'Open Region Workbench', shortTitle: 'Port Gellhorn' },
     'hero-3': { tag: 'Leonida Keys Missables', title: 'Do Not Leave Chapter 1 Without Grabbing These', desc: 'Tourist Trap wipes Jason\'s old house and pocket cash. Stash cash under the bedroom floorboards and claim mailbox bounties first.', ctaText: 'View Chapter Routes', shortTitle: 'Keys Missables' },
     'hero-4': { tag: 'Grassrivers Swamps', title: 'Skunk Ape, Giant Crab & Underwater Treasures', desc: 'Track nocturnal cryptids and 33 underwater exploration spots deep in the wetlands. Check your fuel gauge and trunk loadout before heading out.', ctaText: 'Explore Secrets', shortTitle: 'Grassrivers' },
@@ -327,7 +327,22 @@ window.VICE_I18N_EN = {
     'GotN7bLCgpU': { title: "GTA 6 - What's New In the First Patch? (Update 1.002.001)", note: 'Official patch fixes 7 major glitches, adds a missing feature, and upgrades rain' },
     '3-DB9LLfYTo': { title: '21 Secrets You Will REGRET Missing In GTA 6!', note: 'Covers the talking red parrot cash grate, timed legendaries, and early secrets' },
     'ZoDqVAmqBOg': { title: 'First GTA 6 Update Adds Missing Feature & More...', note: 'Hands-on comparison of Update 1.002.001 additions and console stability' },
-    '91q_-8PHRgc': { title: 'GTA 6: Safe Codes You Need (Save This)', note: '52-second rapid reference for fixed keypad and legendary safe codes' }
+    '91q_-8PHRgc': { title: 'GTA 6: Safe Codes You Need (Save This)', note: '52-second rapid reference for fixed keypad and legendary safe codes' },
+    'GdQae4QznVM': { title: '*NEW* UNLIMITED MONEY GLITCH TO EARN $500K EVERY HOUR IN GTA 6!', note: 'Full walkthrough of the repeatable $500K/hour money loop and exact trigger spot' },
+    'EFLcrYJEkpc': { title: 'GTA 6 - Airport Heist Mission (4K ULTRA HD)', note: 'Unedited 4K playthrough covering stealth entry, combat, and getaway routes' },
+    'QHtBvEUgCp4': { title: 'The BEST Settings To Change in GTA 6! (In Depth Guide)', note: 'Detailed aim-assist, deadzone, camera, and console performance mode tuning' },
+    'Ce47LOQauQY': { title: 'Secret SILENCED PISTOL Location! (Assassin Nipper .38 Early Pickup)', note: 'Grab this unique suppressed shipwreck pistol right in Chapter 1' },
+    '-TMOZIF_UwA': { title: 'Every SECRET Car Location in GTA 6!', note: '75-second tour of free hidden custom vehicles and rare spawn points' },
+    'x8dhhsDEcZk': { title: 'GTA 6 Beginner\'s Guide: 25 Things I Wish I Knew Before Playing', note: 'Spoiler-free checklist covering early economy, trunk weapons, and missables' },
+    'zp1-8v1HtO8': { title: 'How to Complete Heist Planning Mission (Complete Prep Work)', note: 'Clear every heist prep objective smoothly without getting stuck' },
+    'm_fD92vrB10': { title: 'How to Get The FASTEST Car in GTA 6! (Thrax Guide)', note: '45-second location guide for the top-speed Thrax hypercar' },
+    '-ktc3V-UWjI': { title: 'Practice on the Safe Mission Guide (Cartel Heist Prep)', note: 'Master the safe-cracking timing and clear the Ch. 3 heist prep fast' },
+    'GJsRRqqYVYw': { title: 'Every SECRET Weapon Location in GTA 6!', note: 'Rapid 1-minute roundup of free hidden legendary weapon coordinates' },
+    'GxoUusz9Js4': { title: '3 Secret Guns You Can Get Early in GTA 6', note: '40-second early firepower upgrade guide for Chapter 1' },
+    'ZGm3EaIJrks': { title: 'GTA 6 Is Secretly Judging You (Criminal Profile Explained)', note: 'How the 5-tier Criminal Profile shapes Focus recharge and world reactions' },
+    'y6kVhh5-qb4': { title: 'BEST Way to Make Money in GTA 6 (40-Second Guide)', note: 'Fastest repeatable cash and fencing loop summarized in under a minute' },
+    'ELaR1Ui6O7A': { title: 'Chapter 3 Cartel Heist: How to Open the Vault Fast', note: 'Direct 28-second demo of opening the Sinfrontera Bank vault' },
+    'IE_ttpmDzdg': { title: 'GOLDEN AK Secret Weapon Location in GTA 6', note: 'Exact coordinates for the hidden Golden AK legendary rifle' }
   },
   sweep: {
     'port-gellhorn': {

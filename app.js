@@ -1,5 +1,5 @@
 const HERO_SLIDES = [
-  { id: 'hero-1', order: 1, views24h: 3953074, engagement: 0.96, freshness: 1.0, sponsored: false, tag: '热度榜首 / 55 条视频站内播放', title: '罪恶都市黄昏海滨全玩法百科', desc: '收录 55 条实测高播放视频、8 组全图门禁密码速查板、6 大区域扫荡清单与 127 传奇武器点位，主机第二屏常驻工具站。', ctaText: '浏览 55 条实战视频', ctaHref: '#videos', image: 'assets/vice-city.jpg', fallback: 'https://vice6map.com/assets/screenshots/vice-city-ocean-drive.jpg', shortTitle: '罪恶都市海滨' },
+  { id: 'hero-1', order: 1, views24h: 3953074, engagement: 0.96, freshness: 1.0, sponsored: false, tag: '热度榜首 / 70 条视频站内播放', title: '罪恶都市黄昏海滨全玩法百科', desc: '收录 70 条实测高播放视频、8 组全图门禁密码速查板、6 大区域扫荡清单与 127 传奇武器点位，主机第二屏常驻工具站。', ctaText: '浏览 70 条实战视频', ctaHref: '#videos', image: 'assets/vice-city.jpg', fallback: 'https://vice6map.com/assets/screenshots/vice-city-ocean-drive.jpg', shortTitle: '罪恶都市海滨' },
   { id: 'hero-2', order: 2, views24h: 1580000, engagement: 0.94, freshness: 0.98, sponsored: false, tag: 'Port Gellhorn 扫荡专题', title: '8 把传奇武器与 UFO 2314 永久加成', desc: '树顶沙发左轮、4 组固定地堡密码与星光旅馆 UFO 营救，一键进入区域扫荡模式逐项勾选。', ctaText: '打开区域扫荡工作台', ctaHref: '#sweep', image: 'assets/port-gellhorn.jpg', fallback: 'https://i.ytimg.com/vi/0NIez05L0YE/hqdefault.jpg', shortTitle: 'Port Gellhorn 扫荡' },
   { id: 'hero-3', order: 3, views24h: 1227918, engagement: 0.93, freshness: 0.96, sponsored: false, tag: 'Leonida Keys 开荒防漏', title: '第一章离岛前绝不能漏的隐藏收集', desc: 'Tourist Trap 任务会清空 Jason 旧宅与现金，先去卧室地板藏钱并领完门口信箱赏金。', ctaText: '查看章节避坑路线', ctaHref: '#chapters', image: 'assets/leonida-keys.jpg', fallback: 'https://i.ytimg.com/vi/FvbVccBoVds/hqdefault.jpg', shortTitle: '群岛开荒防漏' },
   { id: 'hero-4', order: 4, views24h: 1040000, engagement: 0.91, freshness: 0.93, sponsored: false, tag: 'Grassrivers 湿地探索', title: '臭鼬猿、巨型变异蟹与水下秘宝', desc: '深入草河沼泽追踪夜间怪谈生物与 33 处水下探索，出发前记得查清油量与后备箱配枪。', ctaText: '查看隐藏彩蛋解析', ctaHref: '#mechanics', image: 'assets/grassrivers.jpg', fallback: 'https://i.ytimg.com/vi/X08cBTfKpP4/hqdefault.jpg', shortTitle: '草河湿地怪谈' },
@@ -63,7 +63,22 @@ const VIDEOS = [
   { id: 'GotN7bLCgpU', title: 'GTA 6 - What\'s New In the First Patch?（首日补丁 1.002.001 更新全拆解）', channel: 'IGN', cat: 'starter', views: 634658, hoursAgo: 6, duration: '01:14', note: '官方首个更新修复 7 项恶性 Bug、补回缺失特性并升级雨天粒子画质' },
   { id: '3-DB9LLfYTo', title: '21 Secrets You Will REGRET Missing In GTA 6!（21 个错过必悔的隐藏秘密）', channel: 'MrRoflWaffles', cat: 'easter', views: 330889, hoursAgo: 8, duration: '12:01', note: '涵盖红鹦鹉提示藏钱格栅、限时传奇枪与早期高价值隐藏互动' },
   { id: 'ZoDqVAmqBOg', title: 'First GTA 6 Update Adds Missing Feature & More...（1.002.001 补丁实机对比）', channel: 'JorRaptor', cat: 'starter', views: 127949, hoursAgo: 7, duration: '01:56', note: '实测首日补丁新增功能细节与主机帧率稳定性提升' },
-  { id: '91q_-8PHRgc', title: 'GTA 6: Safe Codes You Need (Save This)（全图必存保险箱与门禁密码速查）', channel: 'Manatee GTA', cat: 'weapons', views: 91123, hoursAgo: 9, duration: '00:52', note: '52 秒速记全图固定门禁密码与传奇武器保险箱开锁码' }
+  { id: '91q_-8PHRgc', title: 'GTA 6: Safe Codes You Need (Save This)（全图必存保险箱与门禁密码速查）', channel: 'Manatee GTA', cat: 'weapons', views: 91123, hoursAgo: 9, duration: '00:52', note: '52 秒速记全图固定门禁密码与传奇武器保险箱开锁码' },
+  { id: 'GdQae4QznVM', title: '*NEW* UNLIMITED MONEY GLITCH $500K/H（每小时 50 万无限刷钱实测）', channel: 'MrDalekJD', cat: 'money', views: 567795, hoursAgo: 4, duration: '01:47', note: '1 分 47 秒完整演示最新每小时 $500K 刷钱循环与触发点位' },
+  { id: 'EFLcrYJEkpc', title: 'GTA 6 机场大型劫案 Airport Heist 4K 完整实机流程', channel: 'Shirrako', cat: 'money', views: 481892, hoursAgo: 6, duration: '43:05', note: '4K 超清无剪辑实录机场劫案潜行、交火与撤离全流程' },
+  { id: 'QHtBvEUgCp4', title: 'GTA 6 深度最佳画面与操控设置指南（GhillieMaster 实测）', channel: 'GhillieMaster', cat: 'starter', views: 173203, hoursAgo: 7, duration: '12:02', note: '逐项拆解瞄准辅助、死区、视角与主机性能模式最优配置' },
+  { id: 'Ce47LOQauQY', title: '前期必拿隐藏消音手枪 Assassin Nipper .38 精确点位', channel: 'Mon Facts', cat: 'weapons', views: 141230, hoursAgo: 5, duration: '01:35', note: '第一章开荒即可免费拿到的沉船隐藏消音传奇手枪' },
+  { id: '-TMOZIF_UwA', title: 'GTA 6 全图隐藏车辆刷新点速查（Every Secret Car Location）', channel: 'RipItRandy GTA', cat: 'vehicles', views: 130324, hoursAgo: 4, duration: '01:15', note: '75 秒速览全图免费稀有定制车与隐藏刷车坐标' },
+  { id: 'x8dhhsDEcZk', title: '零剧透新手必看：游玩前最希望早知道的 25 件事', channel: 'GameSight', cat: 'starter', views: 97218, hoursAgo: 8, duration: '12:41', note: '无剧透梳理开荒经济、载具后备箱与任务避坑要点' },
+  { id: 'zp1-8v1HtO8', title: '劫案筹备任务 Heist Planning 完整前置攻略', channel: 'GuidingLight', cat: 'money', views: 83520, hoursAgo: 5, duration: '02:03', note: '快速完成全部劫案前置侦察与准备目标，避免卡关' },
+  { id: 'm_fD92vrB10', title: '全作最快超跑 Thrax 45 秒速拿路线指南', channel: 'Dec Games', cat: 'vehicles', views: 80346, hoursAgo: 3, duration: '00:45', note: '极速第一超跑 Thrax 的精确刷车与获取路线演示' },
+  { id: '-ktc3V-UWjI', title: '第 3 章 Cartel Heist 保险箱开锁练习任务速通教学', channel: 'TyphoonX', cat: 'money', views: 48976, hoursAgo: 4, duration: '01:01', note: '1 分钟讲透开锁节奏与判定点，快速通过劫案前置训练' },
+  { id: 'GJsRRqqYVYw', title: '全图隐藏传奇武器点位合集（Every Secret Weapon Location）', channel: 'RipItRandy GTA', cat: 'weapons', views: 36754, hoursAgo: 3, duration: '01:07', note: '1 分钟高密度盘点全图多把免费隐藏传奇武器坐标' },
+  { id: 'GxoUusz9Js4', title: '前期开荒必拿的 3 把隐藏免费强力武器点位', channel: 'Spawn Szn', cat: 'weapons', views: 35722, hoursAgo: 6, duration: '00:40', note: '40 秒速查开局立刻提升火力的 3 处隐藏枪械位置' },
+  { id: 'ZGm3EaIJrks', title: '犯罪档案隐藏判定解析：GTA 6 如何在暗中评价你的玩法', channel: 'Mr. AK', cat: 'starter', views: 33188, hoursAgo: 5, duration: '01:08', note: '一分钟看懂五级犯罪档案对聚焦充能与剧情细节的影响' },
+  { id: 'y6kVhh5-qb4', title: '40 秒速览 GTA 6 当前最高效赚钱方式', channel: 'Craszy', cat: 'money', views: 32158, hoursAgo: 4, duration: '00:40', note: '极简快节奏总结当前版本最稳的刷钱与销赃循环' },
+  { id: 'ELaR1Ui6O7A', title: '第 3 章 Cartel Heist 银行金库快速开启实操演示', channel: 'Gamitu', cat: 'money', views: 26456, hoursAgo: 7, duration: '00:28', note: '28 秒直击 Sinfrontera 银行金库开启关键步骤' },
+  { id: 'IE_ttpmDzdg', title: '隐藏黄金 AK 传奇步枪精确获取点位（Golden AK）', channel: 'Rodwenn', cat: 'weapons', views: 10986, hoursAgo: 4, duration: '00:17', note: '17 秒直指全图隐藏黄金 AK 步枪刷新坐标' }
 ];
 
 const SWEEP_DATA = {
