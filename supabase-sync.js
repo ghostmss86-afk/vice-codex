@@ -18,14 +18,12 @@
   const enabled = Boolean(base && key);
 
   function headers(extra) {
-    return Object.assign(
-      {
-        apikey: key,
-        Authorization: 'Bearer ' + key,
-        'Content-Type': 'application/json'
-      },
-      extra || {}
-    );
+    const h = {
+      apikey: key,
+      'Content-Type': 'application/json'
+    };
+    if (key.startsWith('eyJ')) h.Authorization = 'Bearer ' + key;
+    return Object.assign(h, extra || {});
   }
 
   async function req(path, opts) {
