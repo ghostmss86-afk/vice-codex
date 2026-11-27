@@ -1,4 +1,4 @@
-// VICE CODEX Cloud Social & Analytics Adapter (Zero-dependency)
+// VICE CODEX Cloud Social, In-Site Auth & Analytics Adapter (Zero-dependency)
 // Automatically activates global multi-user persistence when cloud-config.js has Supabase keys,
 // and injects Cloudflare Web Analytics when cfAnalyticsToken is provided.
 (function () {
@@ -38,19 +38,101 @@
     }
   }
 
+  async function sha256Hex(str) {
+    if (window.crypto && window.crypto.subtle) {
+      const buf = new TextEncoder().encode(str);
+      const hash = await window.crypto.subtle.digest('SHA-256', buf);
+      return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return (h >>> 0).toString(16).padStart(64, '0');
+  }
+
   window.VICE_CLOUD = {
     enabled,
+    async hashPassword(username, password) {
+      return sha256Hex('vc_v2_salt::' + String(username).toLowerCase().trim() + '::' + String(password));
+    },
     async fetchAll() {
       if (!enabled) return null;
-      const [posts, squad, chat, comments] = await Promise.all([
+      const [posts, squad, chat, comments, reactions] = await Promise.all([
         req('community_posts?select=*&order=upvotes.desc&limit=100'),
         req('squad_cards?select=*&order=created_at.desc&limit=100'),
-        req('chat_messages?select=*&order=created_at.asc&limit=200'),
-        req('item_comments?select=*&order=created_at.asc&limit=300')
+        req('chat_messages?select=*&order=created_at.asc&limit=240'),
+        req('item_comments?select=*&order=created_at.asc&limit=300'),
+        req('reactions?select=*&limit=500')
       ]);
-      return { posts, squad, chat, comments };
+      return { posts, squad, chat, comments, reactions };
+    },
+    async registerMember({ username, displayName, password, platform, avatarColor, progressJson }) {
+      const canonical = String(username || '').toLowerCase().replace(/^@+/, '').trim();
+      if (!canonical || canonical.length < 2) return { ok: false, reason: 'invalid' };
+      const existing = await req('vc_members?username=eq.' + encodeURIComponent(canonical) + '&select=username');
+      if (existing === null) return { ok: false, reason: 'schema_missing' };
+      if (Array.isArray(existing) && existing.length) return { ok: false, reason: 'exists' };
+      const password_hash = await this.hashPassword(canonical, password);
+      const ok = await req('vc_members', {
+        method: 'POST',
+        headers: headers({ Prefer: 'return=minimal' }),
+        body: JSON.stringify({
+          username: canonical,
+          display_name: displayName.startsWith('@') ? displayName : '@' + displayName,
+          password_hash,
+          platform: platform || 'PS5',
+          avatar_color: avatarColor || '#FF5A36',
+          progress_json: progressJson || {}
+        })
+      });
+      if (!ok) return { ok: false, reason: 'failed' };
+      return { ok: true, member: { username: canonical, displayName: displayName.startsWith('@') ? displayName : '@' + displayName, platform: platform || 'PS5', avatarColor: avatarColor || '#FF5A36', progressJson: progressJson || {} } };
+    },
+    async loginMember(username, password) {
+      const canonical = String(username || '').toLowerCase().replace(/^@+/, '').trim();
+      if (!canonical) return { ok: false, reason: 'invalid' };
+      const rows = await req('vc_members?username=eq.' + encodeURIComponent(canonical) + '&select=*');
+      if (rows === null) return { ok: false, reason: 'schema_missing' };
+      if (!Array.isArray(rows) || !rows.length) return { ok: false, reason: 'not_found' };
+      const row = rows[0];
+      const expected = await this.hashPassword(canonical, password);
+      if (row.password_hash !== expected) return { ok: false, reason: 'wrong_password' };
+      return {
+        ok: true,
+        member: {
+          username: row.username,
+          displayName: row.display_name,
+          platform: row.platform,
+          avatarColor: row.avatar_color,
+          progressJson: row.progress_json || {}
+        }
+      };
+    },
+    async saveMemberProgress(username, progressJson) {
+      const canonical = String(username || '').toLowerCase().replace(/^@+/, '').trim();
+      if (!canonical) return null;
+      return req('vc_members?username=eq.' + encodeURIComponent(canonical), {
+        method: 'PATCH',
+        headers: headers({ Prefer: 'return=minimal' }),
+        body: JSON.stringify({ progress_json: progressJson || {} })
+      });
     },
     async createPost(p) {
+      const rich = await req('community_posts', {
+        method: 'POST',
+        headers: headers({ Prefer: 'return=minimal' }),
+        body: JSON.stringify({
+          id: p.id,
+          title: p.title,
+          author: p.author,
+          category: p.category,
+          video_url: p.videoUrl || '',
+          body: p.body,
+          upvotes: p.upvotes || 1,
+          is_member: Boolean(p.isMember),
+          platform: p.platform || ''
+        })
+      });
+      if (rich) return rich;
       return req('community_posts', {
         method: 'POST',
         headers: headers({ Prefer: 'return=minimal' }),
@@ -79,7 +161,23 @@
         body: JSON.stringify({ id: f.id, game_id: f.gameId, platform: f.platform, note: f.note })
       });
     },
-    async sendChat(channel, author, text) {
+    async sendChat(channel, author, text, meta) {
+      const m = meta || {};
+      const rich = await req('chat_messages', {
+        method: 'POST',
+        headers: headers({ Prefer: 'return=minimal' }),
+        body: JSON.stringify({
+          channel,
+          author,
+          text,
+          reply_to_author: m.replyToAuthor || '',
+          reply_to_text: m.replyToText || '',
+          is_member: Boolean(m.isMember),
+          platform: m.platform || '',
+          avatar_color: m.avatarColor || '#F5B041'
+        })
+      });
+      if (rich) return rich;
       return req('chat_messages', {
         method: 'POST',
         headers: headers({ Prefer: 'return=minimal' }),
@@ -91,6 +189,13 @@
         method: 'POST',
         headers: headers({ Prefer: 'return=minimal' }),
         body: JSON.stringify({ target_key: targetKey, author, text })
+      });
+    },
+    async saveReaction(targetKey, emoji, count) {
+      return req('reactions', {
+        method: 'POST',
+        headers: headers({ Prefer: 'resolution=merge-duplicates,return=minimal' }),
+        body: JSON.stringify({ target_key: targetKey, emoji, count })
       });
     }
   };

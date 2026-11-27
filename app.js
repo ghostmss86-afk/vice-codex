@@ -263,7 +263,12 @@ const state = {
   lang: detectDefaultLang(),
   heroSort: 'heat', heroIndex: 0, videoCat: 'all', videoSort: 'heat', videoQuery: '', videoLimit: 12,
   cloudUpdatedAt: '',
-  profile: loadStore('vc_player_profile', { handle: '', gameId: '', platform: 'PS5' }),
+  member: loadStore('vc_member_session', null),
+  profile: loadStore('vc_player_profile', { handle: '', gameId: '', platform: 'PS5', avatarColor: '#F5B041' }),
+  loungeTab: 'chat',
+  replyTarget: null,
+  reactions: loadStore('vc_reactions', {}),
+  myReactions: loadStore('vc_my_reactions', {}),
   activeSweepRegion: 'port-gellhorn', sweepChecked: loadStore('vc_v7_sweep', {}),
   mechCat: 'all', arsenalTab: 'cars', activeChapter: 1, spoilerSafe: false,
   checklist: loadStore('vc_v7_checklist', {}), posts: loadStore('vc_v7_posts', DEFAULT_POSTS),
@@ -273,20 +278,58 @@ const state = {
   comments: loadStore('vc_v7_comments', DEFAULT_COMMENTS),
   activeCommentKey: null, activeVideoId: null
 };
+function getActiveIdentity() {
+  if (state.member) {
+    return { handle: state.member.displayName, isMember: true, platform: state.member.platform || 'PS5', avatarColor: state.member.avatarColor || '#FF5A36' };
+  }
+  return { handle: state.profile.handle || '', isMember: false, platform: state.profile.platform || 'PS5', avatarColor: state.profile.avatarColor || '#F5B041' };
+}
 function rememberPlayerHandle(raw) {
+  if (state.member) return;
   const h = String(raw || '').trim(); if (!h) return;
   state.profile.handle = h.startsWith('@') ? h : '@' + h;
   saveStore('vc_player_profile', state.profile);
-  applySavedProfileInputs();
+  applySavedProfileInputs(); syncIdentityUI();
 }
 function applySavedProfileInputs() {
-  if (state.profile.handle) {
+  const iden = getActiveIdentity();
+  if (iden.handle) {
     ['chatAuthorInput', 'vmCommentAuthor', 'commentAuthor', 'postAuthor'].forEach(id => {
-      const el = document.getElementById(id); if (el && !el.value) el.value = state.profile.handle;
+      const el = document.getElementById(id); if (el) el.value = iden.handle;
     });
   }
+  const chatAuthor = document.getElementById('chatAuthorInput');
+  if (chatAuthor) chatAuthor.readOnly = Boolean(state.member);
   if (state.profile.gameId) {
     const gid = document.getElementById('friendGameId'); if (gid && !gid.value) gid.value = state.profile.gameId;
+  }
+}
+let progressSyncTimer = null;
+function scheduleMemberProgressSync() {
+  if (!state.member || !window.VICE_CLOUD || !window.VICE_CLOUD.enabled) return;
+  clearTimeout(progressSyncTimer);
+  progressSyncTimer = setTimeout(() => {
+    window.VICE_CLOUD.saveMemberProgress(state.member.username, { checklist: state.checklist, sweepChecked: state.sweepChecked });
+  }, 800);
+}
+function syncIdentityUI() {
+  const en = isEn(), m = state.member, p = state.profile;
+  const openBtn = document.getElementById('openAccountBtn');
+  const mobileBtn = document.getElementById('mobileAccountBtn');
+  const loungeText = document.getElementById('loungeIdentityText');
+  const loungeBtn = document.getElementById('loungeAccountBtn');
+  if (m) {
+    const badgeHtml = `<span class="avatar-dot" style="background:${escapeHtml(m.avatarColor)}"></span><span>${escapeHtml(m.displayName)} ✓</span>`;
+    if (openBtn) { openBtn.innerHTML = badgeHtml; openBtn.classList.add('logged-in'); }
+    if (mobileBtn) mobileBtn.textContent = `${m.displayName} ✓`;
+    if (loungeText) loungeText.innerHTML = `<span class="avatar-dot" style="background:${escapeHtml(m.avatarColor)}; margin-right:0.35rem;"></span><strong>${escapeHtml(m.displayName)}</strong> <span class="member-badge">${en ? 'Verified ✓' : '认证玩家 ✓'}</span> <span class="plat-tag">${escapeHtml(m.platform)}</span>`;
+    if (loungeBtn) loungeBtn.textContent = en ? 'Account & Cloud Sync' : '账号与云端进度';
+  } else {
+    const guestLabel = p.handle ? (en ? `Guest: ${p.handle}` : `游客：${p.handle}`) : (en ? 'Guest / Sign In' : '登录 / 游客');
+    if (openBtn) { openBtn.textContent = guestLabel; openBtn.classList.remove('logged-in'); }
+    if (mobileBtn) mobileBtn.textContent = guestLabel;
+    if (loungeText) loungeText.textContent = p.handle ? (en ? `Active as Guest (${p.handle}) · Sign in anytime to sync progress` : `当前身份：游客 ${p.handle}（免注册畅聊，登录可云端同步进度）`) : (en ? 'Guest Mode (No login needed to chat & post)' : '当前身份：游客模式（免注册直接玩，登录解锁认证徽章）');
+    if (loungeBtn) loungeBtn.textContent = en ? 'Sign In / Free Register' : '登录 / 免费注册';
   }
 }
 
@@ -360,13 +403,55 @@ function updateSocialCloudBadge() {
   const el = document.getElementById('socialCloudBadge'); if (!el) return;
   const en = isEn(), live = Boolean(window.VICE_CLOUD && window.VICE_CLOUD.enabled);
   el.textContent = live
-    ? (en ? EN.ui.socialCloudLive : '云端实时互通已连接 · 免注册发帖、聊天与登记名片，全网玩家实时可见')
+    ? (en ? EN.ui.socialCloudLive : '云端实时互通已连接 · 游客免注册即可畅聊发帖，站内注册支持跨设备云端同步进度')
     : (en ? EN.ui.socialCloudLocal : '当前为本地保存模式 · 你的昵称与发帖将自动保留在浏览器');
 }
+function updateSocialCountersAndPulse() {
+  const en = isEn();
+  let totalChat = 0, latestMsg = null;
+  Object.keys(state.chatMessages).forEach(ch => {
+    const arr = state.chatMessages[ch] || [];
+    totalChat += arr.length;
+    if (arr.length) latestMsg = { ch, msg: arr[arr.length - 1] };
+  });
+  const tChat = document.getElementById('tabBtnChat'), tPosts = document.getElementById('tabBtnPosts'), tSquad = document.getElementById('tabBtnSquad');
+  if (tChat) tChat.innerHTML = `${en ? 'Live Chat' : '实时聊天室'} <span class="tab-count tabular" id="tabCountChat">${totalChat}</span>`;
+  if (tPosts) tPosts.innerHTML = `${en ? 'Guides & Videos' : '攻略与视频广场'} <span class="tab-count tabular" id="tabCountPosts">${state.posts.length}</span>`;
+  if (tSquad) tSquad.innerHTML = `${en ? 'Squad Cards' : '车队与交友墙'} <span class="tab-count tabular" id="tabCountSquad">${state.friends.length}</span>`;
+  const dockC = document.getElementById('dockChatCount'); if (dockC) dockC.textContent = String(totalChat);
+  const liveStat = document.getElementById('chatLiveStat');
+  if (liveStat) {
+    const chCount = (state.chatMessages[state.chatChannel] || []).length;
+    const chLbl = en ? (EN.ui.chatChannels[state.chatChannel] || state.chatChannel) : state.chatChannel;
+    liveStat.textContent = en ? `${chLbl} · ${chCount} messages · Auto-syncs every 10s` : `${chLbl} · 共 ${chCount} 条实时对话 · 每 10 秒云端自动刷新`;
+  }
+  const chatPrev = document.getElementById('pulseChatPreview');
+  if (chatPrev && latestMsg) {
+    const chLbl = en ? (EN.ui.chatChannels[latestMsg.ch] || latestMsg.ch) : latestMsg.ch;
+    chatPrev.textContent = `${chLbl} ${latestMsg.msg.author}: ${latestMsg.msg.text}`;
+  }
+  const postPrev = document.getElementById('pulsePostPreview');
+  if (postPrev && state.posts.length) {
+    const topPost = getPostCopy(state.posts.slice().sort((a, b) => b.upvotes - a.upvotes)[0]);
+    postPrev.textContent = `${topPost.title} (▲${topPost.upvotes})`;
+  }
+}
+function switchLoungeTab(tab) {
+  state.loungeTab = tab;
+  document.querySelectorAll('#loungeMainTabs button[data-lounge-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.loungeTab === tab)));
+  const map = { chat: 'loungePanelChat', posts: 'loungePanelPosts', squad: 'loungePanelSquad' };
+  Object.keys(map).forEach(k => { const el = document.getElementById(map[k]); if (el) el.hidden = (k !== tab); });
+}
+function jumpToLounge(tab, focusChat) {
+  switchLoungeTab(tab || 'chat');
+  const sec = document.getElementById('lounge');
+  if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (focusChat) setTimeout(() => { const inp = document.getElementById('chatTextInput'); if (inp) inp.focus(); }, 360);
+}
 function renderAll() {
-  applyStaticI18n(); updateSocialCloudBadge(); renderHero(); renderVideos(); renderSweep(); renderCalculator();
+  applyStaticI18n(); syncIdentityUI(); updateSocialCloudBadge(); renderHero(); renderVideos(); renderSweep(); renderCalculator();
   renderRegions(); renderMechanics(); renderArsenal(); renderChapter(); renderChecklist();
-  renderCommunity(); renderFriends(); renderChat();
+  renderCommunity(); renderFriends(); renderChat(); updateSocialCountersAndPulse();
   if (state.activeVideoId) openVideoPlayer(state.activeVideoId);
 }
 function toggleLang() {
@@ -532,7 +617,7 @@ function renderSweep() {
   }).join('');
 }
 document.getElementById('sweepRegionTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-sweep]'); if (!btn) return; state.activeSweepRegion = btn.dataset.sweep; document.querySelectorAll('#sweepRegionTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); renderSweep(); });
-document.getElementById('sweepChecklist').addEventListener('change', (e) => { const box = e.target.closest('input[data-sweep-id]'); if (!box) return; state.sweepChecked[box.dataset.sweepId] = box.checked; saveStore('vc_v7_sweep', state.sweepChecked); renderSweep(); });
+document.getElementById('sweepChecklist').addEventListener('change', (e) => { const box = e.target.closest('input[data-sweep-id]'); if (!box) return; state.sweepChecked[box.dataset.sweepId] = box.checked; saveStore('vc_v7_sweep', state.sweepChecked); renderSweep(); scheduleMemberProgressSync(); });
 
 function renderCalculator() {
   const ch = Number(document.getElementById('calcChapter').value), bags = Number(document.getElementById('calcVehicle').value), loot = document.getElementById('calcLoot').value, prof = document.getElementById('calcProfile').value;
@@ -605,8 +690,8 @@ function renderChecklist() {
   document.getElementById('checklistProgressBar').style.width = `${Math.min(100, weight)}%`;
   document.getElementById('checklistSummaryText').textContent = en ? EN.ui.checklistSummary(weight.toFixed(1)) : `已完成 ${weight.toFixed(1)}%`;
 }
-document.getElementById('checklistGrid').addEventListener('change', (e) => { const box = e.target.closest('input[data-check-id]'); if (!box) return; state.checklist[box.dataset.checkId] = box.checked; saveStore('vc_v7_checklist', state.checklist); renderChecklist(); });
-document.getElementById('resetChecklistBtn').addEventListener('click', () => { state.checklist = {}; saveStore('vc_v7_checklist', state.checklist); renderChecklist(); showToast(isEn() ? EN.ui.toasts.checklistReset : '已重置进度'); });
+document.getElementById('checklistGrid').addEventListener('change', (e) => { const box = e.target.closest('input[data-check-id]'); if (!box) return; state.checklist[box.dataset.checkId] = box.checked; saveStore('vc_v7_checklist', state.checklist); renderChecklist(); scheduleMemberProgressSync(); });
+document.getElementById('resetChecklistBtn').addEventListener('click', () => { state.checklist = {}; saveStore('vc_v7_checklist', state.checklist); renderChecklist(); scheduleMemberProgressSync(); showToast(isEn() ? EN.ui.toasts.checklistReset : '已重置进度'); });
 
 document.getElementById('downloadPosterBtn').addEventListener('click', () => {
   const en = isEn(), { weight, count } = getChecklistStats(), rank = document.getElementById('posterRankSelect').value, doneItems = CHECKLIST_ITEMS.filter(i => state.checklist[i.id]).slice(0, 5);
@@ -629,18 +714,45 @@ document.getElementById('downloadPosterBtn').addEventListener('click', () => {
   showToast(en ? EN.ui.toasts.posterSaved : '已下载 100% 战绩海报 PNG');
 });
 
+const EMOJI_MAP = { fire: '🔥', like: '👍', lol: '😂' };
+function renderReactionButtons(targetKey) {
+  const bag = state.reactions[targetKey] || {};
+  return ['fire', 'like', 'lol'].map(code => {
+    const count = Number(bag[code] || 0);
+    const active = Boolean(state.myReactions[targetKey + ':' + code]);
+    return `<button type="button" class="react-btn tabular${active ? ' active' : ''}" data-react-key="${escapeHtml(targetKey)}" data-react-emoji="${code}">${EMOJI_MAP[code]}${count ? ' ' + count : ''}</button>`;
+  }).join('');
+}
+function toggleReaction(targetKey, emoji) {
+  if (!state.reactions[targetKey]) state.reactions[targetKey] = {};
+  const mk = targetKey + ':' + emoji;
+  const prev = Number(state.reactions[targetKey][emoji] || 0);
+  if (state.myReactions[mk]) {
+    delete state.myReactions[mk];
+    state.reactions[targetKey][emoji] = Math.max(0, prev - 1);
+  } else {
+    state.myReactions[mk] = true;
+    state.reactions[targetKey][emoji] = prev + 1;
+  }
+  saveStore('vc_reactions', state.reactions); saveStore('vc_my_reactions', state.myReactions);
+  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.saveReaction(targetKey, emoji, state.reactions[targetKey][emoji]);
+  renderChat(); renderCommunity();
+}
 function getPostCopy(p) { return (isEn() && EN.defaultPosts[p.id]) ? { ...p, ...EN.defaultPosts[p.id] } : p; }
 function renderCommunity() {
   const en = isEn(), list = document.getElementById('communityList'), filtered = state.posts.filter(p => state.postCat === 'all' || p.category === state.postCat).sort((a, b) => b.upvotes - a.upvotes);
-  if (!filtered.length) { list.innerHTML = `<p class="empty-state">${en ? EN.ui.emptyPosts : '当前分类还没有投稿，点击右上角“发布攻略”抢先分享。'}</p>`; return; }
+  if (!filtered.length) { list.innerHTML = `<p class="empty-state">${en ? EN.ui.emptyPosts : '当前分类还没有投稿，点击“上传攻略 / 站内视频”抢先分享。'}</p>`; return; }
   const inlineHint = en ? EN.ui.playInlineLabel : '站内直接播放';
   const cinemaLbl = en ? EN.ui.cinemaPlay : '影院大屏播放';
+  const shareLbl = en ? EN.ui.shareBtn : '复制直达链接';
   list.innerHTML = filtered.map(raw => {
     const p = getPostCopy(raw), catLabel = en ? (EN.ui.postCategories[p.category] || p.category) : p.category;
     const voted = Boolean(state.upvoted[p.id]), ytId = extractYoutubeId(p.videoUrl), cCount = (state.comments[p.id] || []).length;
+    const memberTag = p.isMember ? `<span class="member-badge">✓</span>` : '';
+    const platTag = p.platform ? `<span class="plat-tag">${escapeHtml(p.platform)}</span>` : '';
     const mediaHtml = ytId ? `<div class="post-video-slot" id="post-slot-${p.id}"><button type="button" class="video-cover-btn" data-inline-play-post="${p.id}" data-yt-id="${ytId}" aria-label="${escapeHtml(inlineHint)} ${escapeHtml(p.title)}"><img src="https://i.ytimg.com/vi/${ytId}/hqdefault.jpg" alt="${escapeHtml(p.title)}" loading="lazy" referrerpolicy="no-referrer"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar"><span class="video-heat-num">${escapeHtml(inlineHint)}</span><span>16:9</span></div></button></div>` : '';
     const cinemaBtn = ytId ? `<button type="button" class="text-action-btn" style="color:var(--accent); font-weight:700;" data-play-post-modal="${p.id}" data-yt-id="${ytId}">${escapeHtml(cinemaLbl)}</button>` : '';
-    return `<article class="post-row" id="post-${p.id}"><button type="button" class="upvote-btn tabular" data-upvote="${p.id}" aria-pressed="${voted}"><span>&#9650;</span><span>${p.upvotes}</span></button><div><div class="post-meta">${escapeHtml(catLabel)} / ${escapeHtml(p.author)}</div><h3>${escapeHtml(p.title)}</h3><p class="post-body">${escapeHtml(p.body)}</p>${mediaHtml}<div class="post-toolbar">${cinemaBtn}<button type="button" class="text-action-btn tabular" data-open-comments="${p.id}" data-comment-title="${escapeHtml(p.title)}">${en ? EN.ui.expandComments(cCount) : `展开评论 (${cCount})`}</button><button type="button" class="text-action-btn" data-copy-md="${p.id}">${en ? EN.ui.copyPrBtn : '复制 GitHub PR 模板'}</button></div></div></article>`;
+    return `<article class="post-row" id="post-${p.id}"><button type="button" class="upvote-btn tabular" data-upvote="${p.id}" aria-pressed="${voted}"><span>&#9650;</span><span>${p.upvotes}</span></button><div><div class="post-meta"><span>${escapeHtml(catLabel)}</span><span>/</span><strong style="color:var(--accent-gold);">${escapeHtml(p.author)}</strong>${memberTag}${platTag}</div><h3>${escapeHtml(p.title)}</h3><p class="post-body">${escapeHtml(p.body)}</p>${mediaHtml}<div class="post-toolbar">${renderReactionButtons('post:' + p.id)}${cinemaBtn}<button type="button" class="text-action-btn tabular" data-open-comments="${p.id}" data-comment-title="${escapeHtml(p.title)}">${en ? EN.ui.expandComments(cCount) : `展开评论 (${cCount})`}</button><button type="button" class="text-action-btn" data-share-post="${p.id}">${escapeHtml(shareLbl)}</button></div></div></article>`;
   }).join('');
 }
 document.getElementById('communityFilterTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-post-cat]'); if (!btn) return; state.postCat = btn.dataset.postCat; document.querySelectorAll('#communityFilterTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); renderCommunity(); });
@@ -649,59 +761,177 @@ document.getElementById('communityList').addEventListener('click', (e) => {
   if (upBtn) {
     const id = upBtn.dataset.upvote, post = state.posts.find(p => p.id === id); if (!post) return;
     if (state.upvoted[id]) { delete state.upvoted[id]; post.upvotes = Math.max(0, post.upvotes - 1); } else { state.upvoted[id] = true; post.upvotes += 1; }
-    saveStore('vc_v7_upvoted', state.upvoted); saveStore('vc_v7_posts', state.posts); if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.updateUpvotes(post.id, post.upvotes); renderCommunity(); return;
+    saveStore('vc_v7_upvoted', state.upvoted); saveStore('vc_v7_posts', state.posts); if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.updateUpvotes(post.id, post.upvotes); renderCommunity(); updateSocialCountersAndPulse(); return;
   }
-  const mdBtn = e.target.closest('button[data-copy-md]');
-  if (mdBtn) { const raw = state.posts.find(x => x.id === mdBtn.dataset.copyMd); if (raw) { const p = getPostCopy(raw); copyText(`---\ntitle: "${p.title}"\nauthor: "${p.author}"\ncategory: "${p.category}"\nvideoUrl: "${p.videoUrl || ''}"\n---\n\n${p.body}\n`, isEn() ? EN.ui.toasts.prCopied : '已复制 GitHub PR 模板'); } }
+  const shBtn = e.target.closest('button[data-share-post]');
+  if (shBtn) { copyText(location.origin + location.pathname + '#post-' + shBtn.dataset.sharePost, isEn() ? EN.ui.linkCopied : '已复制该条攻略直达链接'); }
 });
 
 function renderFriends() {
   const en = isEn(), list = document.getElementById('friendList'), filtered = state.friends.filter(f => state.friendPlat === 'all' || f.platform === state.friendPlat);
-  if (!filtered.length) { list.innerHTML = `<p class="empty-state">${en ? EN.ui.emptyFriends : '该平台暂无名片，点击“登记我的名片”成为首位召集人。'}</p>`; return; }
-  list.innerHTML = filtered.map(f => { const note = (en && EN.defaultFriends[f.id]) ? EN.defaultFriends[f.id] : f.note; return `<div class="friend-row"><div><div class="friend-name">${escapeHtml(f.gameId)} <span style="font-size:var(--text-sm); color:var(--accent-gold); font-weight:500;">(${escapeHtml(f.platform)})</span></div><div class="friend-detail">${escapeHtml(note)}</div></div><button type="button" class="btn-secondary" data-copy-id="${escapeHtml(f.gameId)}">${en ? EN.ui.copyIdBtn : '复制游戏 ID'}</button></div>`; }).join('');
+  if (!filtered.length) { list.innerHTML = `<p class="empty-state" style="padding:1.5rem;">${en ? EN.ui.emptyFriends : '该平台暂无名片，点击“登记我的游戏名片”成为首位召集人。'}</p>`; return; }
+  const inviteLbl = en ? 'Say Hi / Squad Up' : '打招呼约战';
+  list.innerHTML = filtered.map(f => { const note = (en && EN.defaultFriends[f.id]) ? EN.defaultFriends[f.id] : f.note; return `<div class="friend-row"><div><div class="friend-name">${escapeHtml(f.gameId)} <span style="font-size:var(--text-sm); color:var(--accent-gold); font-weight:500;">(${escapeHtml(f.platform)})</span></div><div class="friend-detail">${escapeHtml(note)}</div></div><div class="friend-actions"><button type="button" class="btn-secondary" data-copy-id="${escapeHtml(f.gameId)}">${en ? EN.ui.copyIdBtn : '复制游戏 ID'}</button><button type="button" class="text-action-btn" style="font-weight:700;" data-invite-squad="${escapeHtml(f.gameId)}">${escapeHtml(inviteLbl)}</button></div></div>`; }).join('');
 }
 document.getElementById('friendPlatformTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-plat]'); if (!btn) return; state.friendPlat = btn.dataset.plat; document.querySelectorAll('#friendPlatformTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); renderFriends(); });
-document.getElementById('friendList').addEventListener('click', (e) => { const btn = e.target.closest('button[data-copy-id]'); if (btn) copyText(btn.dataset.copyId, isEn() ? EN.ui.toasts.idCopied(btn.dataset.copyId) : '已复制游戏 ID：' + btn.dataset.copyId); });
+document.getElementById('friendList').addEventListener('click', (e) => {
+  const copyBtn = e.target.closest('button[data-copy-id]'); if (copyBtn) { copyText(copyBtn.dataset.copyId, isEn() ? EN.ui.toasts.idCopied(copyBtn.dataset.copyId) : '已复制游戏 ID：' + copyBtn.dataset.copyId); return; }
+  const invBtn = e.target.closest('button[data-invite-squad]');
+  if (invBtn) {
+    const targetId = invBtn.dataset.inviteSquad;
+    state.chatChannel = '#车队预招';
+    document.querySelectorAll('#chatChannelTabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.ch === '#车队预招')));
+    renderChat(); updateSocialCountersAndPulse(); switchLoungeTab('chat');
+    const inp = document.getElementById('chatTextInput');
+    if (inp) { inp.value = isEn() ? `@${targetId} Hey! Want to squad up for GTA 6?` : `@${targetId} 你好，一起组队开荒或刷收集吗？`; inp.focus(); }
+  }
+});
 
+function setReplyTarget(author, text) {
+  state.replyTarget = { author, text: String(text || '').slice(0, 60) };
+  const bar = document.getElementById('chatReplyBar'), lbl = document.getElementById('chatReplyText');
+  if (bar && lbl) {
+    lbl.textContent = (isEn() ? 'Replying to ' : '正在回复 ') + author + '：' + state.replyTarget.text;
+    bar.hidden = false;
+  }
+  const inp = document.getElementById('chatTextInput'); if (inp) inp.focus();
+}
+function clearReplyTarget() {
+  state.replyTarget = null;
+  const bar = document.getElementById('chatReplyBar'); if (bar) bar.hidden = true;
+}
+document.getElementById('cancelReplyBtn').addEventListener('click', clearReplyTarget);
 function renderChat() {
   const en = isEn(), box = document.getElementById('chatMessages'), baseMsgs = state.chatMessages[state.chatChannel] || [];
   const enSeed = (en && EN.defaultChat[state.chatChannel]) ? EN.defaultChat[state.chatChannel] : null;
-  const msgs = baseMsgs.map((m, idx) => (enSeed && enSeed[idx] && DEFAULT_CHAT[state.chatChannel] && DEFAULT_CHAT[state.chatChannel][idx] && m.text === DEFAULT_CHAT[state.chatChannel][idx].text) ? enSeed[idx] : m);
-  box.innerHTML = msgs.map(m => `<div class="chat-msg"><div class="chat-msg-head"><span class="chat-msg-author">${escapeHtml(m.author)}</span><span class="tabular">${escapeHtml(m.time)}</span></div><div style="font-size:var(--text-sm); color:var(--text-primary);">${escapeHtml(m.text)}</div></div>`).join('');
+  const msgs = baseMsgs.map((m, idx) => (enSeed && enSeed[idx] && DEFAULT_CHAT[state.chatChannel] && DEFAULT_CHAT[state.chatChannel][idx] && m.text === DEFAULT_CHAT[state.chatChannel][idx].text) ? Object.assign({}, m, enSeed[idx]) : m);
+  const replyLbl = en ? 'Reply' : '回复';
+  box.innerHTML = msgs.map((m, idx) => {
+    const rKey = 'chat:' + (m.id || (state.chatChannel + ':' + idx));
+    const color = m.avatarColor || '#F5B041';
+    const memberTag = m.isMember ? `<span class="member-badge">✓</span>` : '';
+    const platTag = m.platform ? `<span class="plat-tag">${escapeHtml(m.platform)}</span>` : '';
+    const quoteHtml = m.replyToAuthor ? `<div class="chat-quote">${en ? 'Replying to ' : '回复 '}${escapeHtml(m.replyToAuthor)}：${escapeHtml(m.replyToText || '')}</div>` : '';
+    return `<div class="chat-msg"><div class="chat-msg-head"><span class="chat-author-wrap"><span class="avatar-dot" style="background:${escapeHtml(color)}"></span><span class="chat-msg-author">${escapeHtml(m.author)}</span>${memberTag}${platTag}</span><span class="tabular">${escapeHtml(m.time)}</span></div>${quoteHtml}<div style="font-size:var(--text-sm); color:var(--text-primary);">${escapeHtml(m.text)}</div><div class="chat-msg-actions">${renderReactionButtons(rKey)}<button type="button" class="text-action-btn" data-reply-author="${escapeHtml(m.author)}" data-reply-text="${escapeHtml(m.text)}">${escapeHtml(replyLbl)}</button></div></div>`;
+  }).join('');
   box.scrollTop = box.scrollHeight;
 }
-document.getElementById('chatChannelTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-ch]'); if (!btn) return; state.chatChannel = btn.dataset.ch; document.querySelectorAll('#chatChannelTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); renderChat(); });
+document.getElementById('chatChannelTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-ch]'); if (!btn) return; state.chatChannel = btn.dataset.ch; document.querySelectorAll('#chatChannelTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); clearReplyTarget(); renderChat(); updateSocialCountersAndPulse(); });
 document.getElementById('chatForm').addEventListener('submit', (e) => {
   e.preventDefault();
-  const authorRaw = document.getElementById('chatAuthorInput').value.trim(), text = document.getElementById('chatTextInput').value.trim(); if (!authorRaw || !text) return;
-  rememberPlayerHandle(authorRaw);
-  const author = state.profile.handle, now = new Date(), time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  const iden = getActiveIdentity();
+  const authorRaw = iden.isMember ? iden.handle : document.getElementById('chatAuthorInput').value.trim();
+  const text = document.getElementById('chatTextInput').value.trim(); if (!authorRaw || !text) return;
+  if (!iden.isMember) rememberPlayerHandle(authorRaw);
+  const cur = getActiveIdentity(), now = new Date(), time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
   if (!state.chatMessages[state.chatChannel]) state.chatMessages[state.chatChannel] = [];
-  state.chatMessages[state.chatChannel].push({ author, time, text }); saveStore('vc_v7_chat', state.chatMessages);
-  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.sendChat(state.chatChannel, author, text);
-  document.getElementById('chatTextInput').value = ''; renderChat(); showToast(isEn() ? EN.ui.toasts.chatSent(EN.ui.chatChannels[state.chatChannel] || state.chatChannel) : '已发送到 ' + state.chatChannel);
+  const msgObj = {
+    id: 'local-' + Date.now(), author: cur.handle, time, text,
+    replyToAuthor: state.replyTarget ? state.replyTarget.author : '',
+    replyToText: state.replyTarget ? state.replyTarget.text : '',
+    isMember: cur.isMember, platform: cur.platform, avatarColor: cur.avatarColor
+  };
+  state.chatMessages[state.chatChannel].push(msgObj); saveStore('vc_v7_chat', state.chatMessages);
+  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.sendChat(state.chatChannel, cur.handle, text, msgObj);
+  document.getElementById('chatTextInput').value = ''; clearReplyTarget(); renderChat(); updateSocialCountersAndPulse(); showToast(isEn() ? EN.ui.toasts.chatSent(EN.ui.chatChannels[state.chatChannel] || state.chatChannel) : '已发送到 ' + state.chatChannel);
 });
 
-const backdrop = document.getElementById('backdrop'), videoModal = document.getElementById('videoModal'), publishDrawer = document.getElementById('publishDrawer'), commentDrawer = document.getElementById('commentDrawer'), friendDrawer = document.getElementById('friendDrawer'), searchModal = document.getElementById('searchModal');
+const backdrop = document.getElementById('backdrop'), videoModal = document.getElementById('videoModal'), publishDrawer = document.getElementById('publishDrawer'), commentDrawer = document.getElementById('commentDrawer'), friendDrawer = document.getElementById('friendDrawer'), searchModal = document.getElementById('searchModal'), authModal = document.getElementById('authModal');
 function closeAllOverlays() {
-  [videoModal, publishDrawer, commentDrawer, friendDrawer, searchModal].forEach(el => { el.classList.remove('open'); el.setAttribute('aria-hidden', 'true'); });
+  [videoModal, publishDrawer, commentDrawer, friendDrawer, searchModal, authModal].forEach(el => { if (el) { el.classList.remove('open'); el.setAttribute('aria-hidden', 'true'); } });
   backdrop.classList.remove('open'); backdrop.setAttribute('aria-hidden', 'true');
   document.getElementById('videoIframeWrap').innerHTML = ''; state.activeVideoId = null;
 }
 function openOverlay(el) { closeAllOverlays(); backdrop.classList.add('open'); backdrop.setAttribute('aria-hidden', 'false'); el.classList.add('open'); el.setAttribute('aria-hidden', 'false'); }
+function switchAuthMode(mode) {
+  document.querySelectorAll('#authModeTabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.authMode === mode)));
+  document.getElementById('authRegisterForm').hidden = (mode !== 'register');
+  document.getElementById('authLoginForm').hidden = (mode !== 'login');
+  document.getElementById('authGuestForm').hidden = (mode !== 'guest');
+}
+function openAuthModal(defaultMode) {
+  const guestView = document.getElementById('authGuestView'), memberView = document.getElementById('authMemberView');
+  if (state.member) {
+    guestView.hidden = true; memberView.hidden = false;
+    const { weight } = getChecklistStats();
+    document.getElementById('memberProfileCard').innerHTML = `<div style="display:flex; align-items:center; gap:0.5rem;"><span class="avatar-dot" style="background:${escapeHtml(state.member.avatarColor)}; width:14px; height:14px;"></span><strong>${escapeHtml(state.member.displayName)}</strong><span class="member-badge">${isEn() ? 'Verified ✓' : '认证玩家 ✓'}</span><span class="plat-tag">${escapeHtml(state.member.platform)}</span></div><div style="font-size:var(--text-sm); color:var(--text-muted);">${isEn() ? `Cloud synced 100% Trophy Progress: ${weight.toFixed(1)}%` : `当前 100% 奖杯总进度：${weight.toFixed(1)}%（已开启跨设备云端同步）`}</div>`;
+  } else {
+    guestView.hidden = false; memberView.hidden = true;
+    const gInput = document.getElementById('guestHandleInput'); if (gInput && state.profile.handle) gInput.value = state.profile.handle;
+    switchAuthMode(defaultMode || 'register');
+  }
+  openOverlay(authModal);
+}
 backdrop.addEventListener('click', closeAllOverlays);
 document.querySelectorAll('[data-close-drawer]').forEach(btn => btn.addEventListener('click', closeAllOverlays));
 document.getElementById('closeVideoModalBtn').addEventListener('click', closeAllOverlays);
+document.getElementById('closeAuthModalBtn').addEventListener('click', closeAllOverlays);
 document.getElementById('openPublishBtn').addEventListener('click', () => openOverlay(publishDrawer));
+document.getElementById('panelPublishBtn').addEventListener('click', () => openOverlay(publishDrawer));
+document.getElementById('dockPublishBtn').addEventListener('click', () => openOverlay(publishDrawer));
+document.getElementById('pulseSubmitBtn').addEventListener('click', () => openOverlay(publishDrawer));
 document.getElementById('openFriendBtn').addEventListener('click', () => openOverlay(friendDrawer));
-const quickPublishBtn = document.getElementById('quickPublishBtn');
-if (quickPublishBtn) quickPublishBtn.addEventListener('click', () => openOverlay(publishDrawer));
-const quickFriendBtn = document.getElementById('quickFriendBtn');
-if (quickFriendBtn) quickFriendBtn.addEventListener('click', () => openOverlay(friendDrawer));
-const quickChatBtn = document.getElementById('quickChatBtn');
-if (quickChatBtn) quickChatBtn.addEventListener('click', () => {
-  const chatInput = document.getElementById('chatTextInput');
-  if (chatInput) { chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => chatInput.focus(), 320); }
+document.getElementById('openAccountBtn').addEventListener('click', () => openAuthModal('register'));
+document.getElementById('mobileAccountBtn').addEventListener('click', () => { mobileNav.classList.remove('open'); openAuthModal('register'); });
+document.getElementById('loungeAccountBtn').addEventListener('click', () => openAuthModal('register'));
+document.getElementById('loungeMainTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-lounge-tab]'); if (btn) switchLoungeTab(btn.dataset.loungeTab); });
+document.getElementById('authModeTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-auth-mode]'); if (btn) switchAuthMode(btn.dataset.authMode); });
+['pulseChatBtn', 'pulseJoinChatBtn', 'dockChatBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('click', () => jumpToLounge('chat', true)); });
+document.getElementById('pulsePostBtn').addEventListener('click', () => jumpToLounge('posts', false));
+document.getElementById('authRegisterForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const u = document.getElementById('regUsername').value.trim(), pw = document.getElementById('regPassword').value, plat = document.getElementById('regPlatform').value, color = document.getElementById('regColor').value;
+  if (!u || pw.length < 4) return;
+  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) {
+    const res = await window.VICE_CLOUD.registerMember({ username: u, displayName: u, password: pw, platform: plat, avatarColor: color, progressJson: { checklist: state.checklist, sweepChecked: state.sweepChecked } });
+    if (!res.ok) {
+      if (res.reason === 'exists') { showToast(isEn() ? 'Username already taken. Try logging in or pick another.' : '该用户名已被注册，请直接登录或换一个名字'); return; }
+      if (res.reason === 'schema_missing') {
+        state.member = { username: u.toLowerCase(), displayName: u.startsWith('@') ? u : '@' + u, platform: plat, avatarColor: color };
+        saveStore('vc_member_session', state.member); applySavedProfileInputs(); syncIdentityUI(); closeAllOverlays();
+        showToast(isEn() ? 'Account active locally (run schema-v2.sql in Supabase for cloud sync)' : '已创建本地认证身份（在 Supabase 运行 schema-v2.sql 即可跨设备云同步）'); return;
+      }
+      showToast(isEn() ? 'Registration failed, please retry.' : '注册暂未成功，请稍后再试'); return;
+    }
+    state.member = res.member;
+  } else {
+    state.member = { username: u.toLowerCase(), displayName: u.startsWith('@') ? u : '@' + u, platform: plat, avatarColor: color };
+  }
+  saveStore('vc_member_session', state.member); applySavedProfileInputs(); syncIdentityUI(); closeAllOverlays();
+  showToast(isEn() ? `Welcome, ${state.member.displayName}! Cloud progress synced.` : `注册成功！欢迎 ${state.member.displayName}，当前进度已同步到云端`);
+});
+document.getElementById('authLoginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const u = document.getElementById('loginUsername').value.trim(), pw = document.getElementById('loginPassword').value;
+  if (!u || !pw) return;
+  if (!window.VICE_CLOUD || !window.VICE_CLOUD.enabled) { showToast(isEn() ? 'Cloud sync is offline.' : '云端数据库未连接'); return; }
+  const res = await window.VICE_CLOUD.loginMember(u, pw);
+  if (!res.ok) {
+    const msg = res.reason === 'not_found' ? (isEn() ? 'Account not found.' : '未找到该用户名，请先注册') : (res.reason === 'wrong_password' ? (isEn() ? 'Incorrect password.' : '密码不正确，请重试') : (isEn() ? 'Please run schema-v2.sql in Supabase first.' : '请先在 Supabase 运行 schema-v2.sql 升级脚本'));
+    showToast(msg); return;
+  }
+  state.member = res.member; saveStore('vc_member_session', state.member);
+  if (res.member.progressJson && res.member.progressJson.checklist) { state.checklist = Object.assign({}, state.checklist, res.member.progressJson.checklist); saveStore('vc_v7_checklist', state.checklist); }
+  if (res.member.progressJson && res.member.progressJson.sweepChecked) { state.sweepChecked = Object.assign({}, state.sweepChecked, res.member.progressJson.sweepChecked); saveStore('vc_v7_sweep', state.sweepChecked); }
+  applySavedProfileInputs(); renderAll(); closeAllOverlays();
+  showToast(isEn() ? `Welcome back, ${state.member.displayName}!` : `欢迎回来 ${state.member.displayName}，云端进度已恢复`);
+});
+document.getElementById('authGuestForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const h = document.getElementById('guestHandleInput').value.trim(), plat = document.getElementById('guestPlatformInput').value;
+  if (!h) return;
+  state.profile.handle = h.startsWith('@') ? h : '@' + h; state.profile.platform = plat; saveStore('vc_player_profile', state.profile);
+  applySavedProfileInputs(); syncIdentityUI(); closeAllOverlays();
+  showToast(isEn() ? `Guest handle saved: ${state.profile.handle}` : `已保存游客身份：${state.profile.handle}`);
+});
+document.getElementById('syncProgressNowBtn').addEventListener('click', async () => {
+  if (!state.member || !window.VICE_CLOUD || !window.VICE_CLOUD.enabled) return;
+  await window.VICE_CLOUD.saveMemberProgress(state.member.username, { checklist: state.checklist, sweepChecked: state.sweepChecked });
+  showToast(isEn() ? '100% progress & sweep lists synced to cloud!' : '已将 100% 奖杯与区域扫荡进度同步至云端');
+});
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  state.member = null; saveStore('vc_member_session', null); applySavedProfileInputs(); syncIdentityUI(); closeAllOverlays();
+  showToast(isEn() ? 'Signed out. Switched back to Guest mode.' : '已退出登录，切回免注册游客模式');
 });
 const vmShareBtn = document.getElementById('vmShareBtn');
 if (vmShareBtn) vmShareBtn.addEventListener('click', () => {
@@ -750,6 +980,8 @@ function openVideoPlayer(vid) {
 }
 
 document.body.addEventListener('click', (e) => {
+  const reactBtn = e.target.closest('[data-react-key]'); if (reactBtn) { toggleReaction(reactBtn.dataset.reactKey, reactBtn.dataset.reactEmoji); return; }
+  const replyBtn = e.target.closest('[data-reply-author]'); if (replyBtn) { setReplyTarget(replyBtn.dataset.replyAuthor, replyBtn.dataset.replyText); return; }
   const pinBtn = e.target.closest('[data-copy-pin]'); if (pinBtn) { copyText(pinBtn.dataset.copyPin, isEn() ? EN.ui.toasts.pinCopied(pinBtn.dataset.copyPin) : '已复制密码：' + pinBtn.dataset.copyPin); return; }
   const shareBtn = e.target.closest('[data-share-video]'); if (shareBtn) { const url = location.origin + location.pathname + '#video-' + shareBtn.dataset.shareVideo; copyText(url, isEn() ? EN.ui.linkCopied : '已复制该条攻略视频直达链接'); return; }
   const inlinePostBtn = e.target.closest('[data-inline-play-post]'); if (inlinePostBtn) { playInlinePostVideo(inlinePostBtn.dataset.inlinePlayPost, inlinePostBtn.dataset.ytId); return; }
@@ -795,10 +1027,11 @@ document.getElementById('publishForm').addEventListener('submit', (e) => {
   const title = document.getElementById('postTitle').value.trim(), authorRaw = document.getElementById('postAuthor').value.trim(), category = document.getElementById('postCategory').value, videoUrl = document.getElementById('postVideoUrl').value.trim(), body = document.getElementById('postContent').value.trim();
   if (!title || !authorRaw || !body) return;
   rememberPlayerHandle(authorRaw);
-  const newPost = { id: 'p-' + Date.now(), title, author: state.profile.handle, category, videoUrl, upvotes: 1, body };
+  const cur = getActiveIdentity();
+  const newPost = { id: 'p-' + Date.now(), title, author: cur.handle || authorRaw, category, videoUrl, upvotes: 1, body, isMember: cur.isMember, platform: cur.platform };
   state.posts.unshift(newPost); state.upvoted[newPost.id] = true; saveStore('vc_v7_posts', state.posts); saveStore('vc_v7_upvoted', state.upvoted);
   if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.createPost(newPost);
-  e.target.reset(); applySavedProfileInputs(); closeAllOverlays(); renderCommunity(); document.getElementById('lounge').scrollIntoView({ behavior: 'smooth' }); showToast(isEn() ? EN.ui.toasts.guidePublished : '已发布攻略');
+  e.target.reset(); applySavedProfileInputs(); closeAllOverlays(); renderCommunity(); updateSocialCountersAndPulse(); jumpToLounge('posts', false); showToast(isEn() ? EN.ui.toasts.guidePublished : '已发布攻略到广场');
 });
 
 document.getElementById('friendForm').addEventListener('submit', (e) => {
@@ -858,9 +1091,16 @@ document.addEventListener('keydown', (e) => {
 async function syncCloudSocial() {
   if (!window.VICE_CLOUD || !window.VICE_CLOUD.enabled) return;
   const data = await window.VICE_CLOUD.fetchAll(); if (!data) return;
+  if (Array.isArray(data.reactions)) {
+    data.reactions.forEach(r => {
+      if (!state.reactions[r.target_key]) state.reactions[r.target_key] = {};
+      state.reactions[r.target_key][r.emoji] = Math.max(Number(r.count || 0), Number(state.reactions[r.target_key][r.emoji] || 0));
+    });
+    saveStore('vc_reactions', state.reactions);
+  }
   if (Array.isArray(data.posts) && data.posts.length) {
     const seen = new Set(data.posts.map(p => p.id));
-    const mapped = data.posts.map(p => ({ id: p.id, title: p.title, author: p.author, category: p.category, videoUrl: p.video_url || '', upvotes: p.upvotes || 1, body: p.body }));
+    const mapped = data.posts.map(p => ({ id: p.id, title: p.title, author: p.author, category: p.category, videoUrl: p.video_url || '', upvotes: p.upvotes || 1, body: p.body, isMember: Boolean(p.is_member), platform: p.platform || '' }));
     state.posts = mapped.concat(DEFAULT_POSTS.filter(d => !seen.has(d.id)));
     renderCommunity();
   }
@@ -875,7 +1115,11 @@ async function syncCloudSocial() {
     data.chat.forEach(m => {
       if (!grouped[m.channel]) grouped[m.channel] = [];
       const t = (m.created_at || '').slice(11, 16) || 'live';
-      grouped[m.channel].push({ author: m.author, time: t, text: m.text });
+      grouped[m.channel].push({
+        id: m.id, author: m.author, time: t, text: m.text,
+        replyToAuthor: m.reply_to_author || '', replyToText: m.reply_to_text || '',
+        isMember: Boolean(m.is_member), platform: m.platform || '', avatarColor: m.avatar_color || '#F5B041'
+      });
     });
     state.chatMessages = grouped; renderChat();
   }
@@ -888,10 +1132,13 @@ async function syncCloudSocial() {
     });
     state.comments = grouped; renderVideos(); renderCommunity();
   }
+  updateSocialCountersAndPulse();
 }
 function checkHashDeepLink() {
-  const m = (location.hash || '').match(/^#video-([A-Za-z0-9_-]{11})$/);
-  if (m && VIDEOS.some(v => v.id === m[1])) openVideoPlayer(m[1]);
+  const vm = (location.hash || '').match(/^#video-([A-Za-z0-9_-]{11})$/);
+  if (vm && VIDEOS.some(v => v.id === vm[1])) { openVideoPlayer(vm[1]); return; }
+  const pm = (location.hash || '').match(/^#post-(.+)$/);
+  if (pm) { jumpToLounge('posts', false); }
 }
 async function loadCloudVideos() {
   try {
@@ -914,4 +1161,4 @@ async function loadCloudVideos() {
   } catch (e) {}
 }
 renderAll(); applySavedProfileInputs(); restartHeroAuto(); loadCloudVideos(); syncCloudSocial();
-if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) setInterval(syncCloudSocial, 20000);
+if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) setInterval(syncCloudSocial, 10000);

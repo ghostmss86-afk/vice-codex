@@ -31,6 +31,7 @@
         <button type="button" class="lang-toggle" id="langToggleBtn" aria-label="切换中英文">EN</button>
         <button type="button" class="search-trigger" id="openSearchBtn">搜索 Cmd+K</button>
         <button type="button" class="spoiler-toggle" id="spoilerToggle" aria-pressed="false">防剧透：关</button>
+        <button type="button" class="account-btn" id="openAccountBtn">登录 / 游客</button>
         <button type="button" class="btn-primary" id="openPublishBtn">发布攻略</button>
         <button type="button" class="menu-toggle" id="menuToggleBtn" aria-expanded="false" aria-controls="mobileNav">菜单</button>
       </div>
@@ -44,8 +45,8 @@
       <a href="#chapters">五大章节赚钱路线</a>
       <a href="#checklist">100% 奖杯与战绩卡</a>
       <a href="#lounge" class="nav-link-social">社交聊天与交友大厅</a>
-      <a href="#live-comments">全网实时评论区</a>
       <div class="mobile-nav-tools">
+        <button type="button" class="btn-secondary" id="mobileAccountBtn">登录 / 游客</button>
         <button type="button" class="btn-secondary" id="mobileLangToggleBtn">EN</button>
         <button type="button" class="btn-secondary" id="mobileSpoilerToggle" aria-pressed="false">防剧透：关</button>
         <button type="button" class="btn-secondary" id="mobileSearchBtn">全站搜索</button>
@@ -109,6 +110,26 @@
         </a>
       </div>
     </nav>
+
+    <div class="live-pulse-strip" id="livePulseStrip" aria-label="全站实时热聊与最新投稿">
+      <div class="container live-pulse-inner">
+        <div class="pulse-items">
+          <button type="button" class="pulse-item" id="pulseChatBtn">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            <span class="pulse-tag" id="pulseChatTag">正在热聊</span>
+            <span class="pulse-text" id="pulseChatPreview">载入实时聊天动态...</span>
+          </button>
+          <button type="button" class="pulse-item" id="pulsePostBtn">
+            <span class="pulse-tag pulse-tag-gold" id="pulsePostTag">最热投稿</span>
+            <span class="pulse-text" id="pulsePostPreview">载入玩家热门攻略...</span>
+          </button>
+        </div>
+        <div class="pulse-actions">
+          <button type="button" class="text-action-btn" id="pulseJoinChatBtn">进入聊天室 &#8594;</button>
+          <button type="button" class="text-action-btn" id="pulseSubmitBtn">上传视频攻略 &#8594;</button>
+        </div>
+      </div>
+    </div>
 
     <section class="section" id="videos">
       <div class="container">
@@ -357,110 +378,74 @@
       <div class="container">
         <div class="section-head">
           <div>
-            <h2>Vice Lounge 玩家社交与聊天大厅</h2>
-            <p class="section-lead">无需注册登录，填个昵称即可发实战攻略、站内直接看投稿视频、贴主机名片找车队，或在右侧 4 个频道实时聊天，全网玩家互通可见。</p>
+            <h2>Vice Lounge 站内社交与聊天大厅</h2>
+            <p class="section-lead">100% 留在站内互动。游客免注册即可直接聊天、回复、点表情与传视频；站内 10 秒免费注册还可获得认证徽章并云端同步 100% 进度。</p>
             <div class="cloud-status-line tabular" id="socialCloudBadge"></div>
           </div>
-          <div class="controls-row">
+          <div class="lounge-identity-bar" id="loungeIdentityBar">
+            <span class="identity-status" id="loungeIdentityText">当前身份：游客模式（免注册直接玩）</span>
+            <button type="button" class="btn-secondary" id="loungeAccountBtn">登录 / 免费注册</button>
+          </div>
+        </div>
+
+        <div class="lounge-main-tabs" role="tablist" aria-label="切换社交大厅板块" id="loungeMainTabs">
+          <button type="button" role="tab" aria-selected="true" data-lounge-tab="chat" id="tabBtnChat">实时聊天室 <span class="tab-count tabular" id="tabCountChat">0</span></button>
+          <button type="button" role="tab" aria-selected="false" data-lounge-tab="posts" id="tabBtnPosts">攻略与视频广场 <span class="tab-count tabular" id="tabCountPosts">0</span></button>
+          <button type="button" role="tab" aria-selected="false" data-lounge-tab="squad" id="tabBtnSquad">车队与交友墙 <span class="tab-count tabular" id="tabCountSquad">0</span></button>
+        </div>
+
+        <div class="lounge-panel active" id="loungePanelChat" role="tabpanel">
+          <div class="chat-stage-head">
+            <div class="segmented" role="tablist" aria-label="切换聊天频道" id="chatChannelTabs">
+              <button type="button" role="tab" aria-selected="true" data-ch="#开荒互助">#开荒互助</button>
+              <button type="button" role="tab" aria-selected="false" data-ch="#彩蛋破译">#彩蛋破译</button>
+              <button type="button" role="tab" aria-selected="false" data-ch="#晒车拍照">#晒车拍照</button>
+              <button type="button" role="tab" aria-selected="false" data-ch="#车队预招">#车队预招</button>
+            </div>
+            <div class="chat-live-stat tabular" id="chatLiveStat"></div>
+          </div>
+          <div class="chat-stage">
+            <div class="chat-messages chat-messages-lg" id="chatMessages"></div>
+            <div class="chat-reply-bar" id="chatReplyBar" hidden>
+              <span id="chatReplyText"></span>
+              <button type="button" class="text-action-btn" id="cancelReplyBtn">取消回复</button>
+            </div>
+            <form class="chat-form" id="chatForm">
+              <input type="text" class="chat-input" id="chatAuthorInput" placeholder="昵称（免注册）" style="max-width:140px;" required maxlength="28">
+              <input type="text" class="chat-input" id="chatTextInput" placeholder="发一条消息到当前频道，点击上方消息可引用回复..." required maxlength="480">
+              <button type="submit" class="btn-primary">发送</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="lounge-panel" id="loungePanelPosts" role="tabpanel" hidden>
+          <div class="lounge-subbar">
             <div class="segmented" role="tablist" aria-label="筛选社区投稿分类" id="communityFilterTabs">
               <button type="button" role="tab" aria-selected="true" data-post-cat="all">全部投稿</button>
               <button type="button" role="tab" aria-selected="false" data-post-cat="赚钱路线">赚钱路线</button>
               <button type="button" role="tab" aria-selected="false" data-post-cat="隐藏彩蛋">隐藏彩蛋</button>
               <button type="button" role="tab" aria-selected="false" data-post-cat="开荒避坑">开荒避坑</button>
             </div>
-            <button type="button" class="btn-secondary" id="exportJsonBtn">导出社区 JSON</button>
-          </div>
-        </div>
-
-        <div class="social-guide-strip" id="socialGuideStrip" aria-label="社交大厅三步玩法指引">
-          <div class="social-guide-cell">
-            <div class="social-guide-kicker tabular">玩法 01 / 攻略投稿</div>
-            <h3>发图文或站内视频攻略</h3>
-            <p>附上视频链接自动生成站内播放器，所有视频均在卡片内直接播放不跳转，支持点赞置顶与展开评论。</p>
-            <button type="button" class="text-action-btn" id="quickPublishBtn">立即发布一条攻略 &#8594;</button>
-          </div>
-          <div class="social-guide-cell">
-            <div class="social-guide-kicker tabular">玩法 02 / 车队交友</div>
-            <h3>贴主机名片找联机队友</h3>
-            <p>登记你的 PSN、Xbox 或 PC 预备队 ID 与常玩时段，其他玩家可一键复制你的 ID 加好友组队。</p>
-            <button type="button" class="text-action-btn" id="quickFriendBtn">登记我的游戏名片 &#8594;</button>
-          </div>
-          <div class="social-guide-cell">
-            <div class="social-guide-kicker tabular">玩法 03 / 实时聊天</div>
-            <h3>免注册 4 频道云端聊天</h3>
-            <p>输入昵称后自动记住，可在开荒互助、彩蛋破译、晒车拍照、车队预招四个频道即时发言，或直达全网评论区。</p>
-            <div class="social-guide-actions">
-              <button type="button" class="text-action-btn" id="quickChatBtn">去聊天室发一句 &#8594;</button>
-              <a href="#live-comments" class="text-action-btn" id="quickCommentsLink">全网评论区 &#8594;</a>
+            <div class="controls-row">
+              <button type="button" class="btn-primary" id="panelPublishBtn">+ 上传攻略 / 站内视频</button>
+              <button type="button" class="btn-secondary" id="exportJsonBtn">导出 JSON</button>
             </div>
           </div>
+          <div id="communityList"></div>
         </div>
 
-        <div class="lounge-layout">
-          <div><div id="communityList"></div></div>
-          <div class="social-column">
-            <div>
-              <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; margin-bottom:1rem; flex-wrap:wrap;">
-                <h3>主机与 PC 玩家交友名片墙</h3>
-                <button type="button" class="text-action-btn" id="openFriendBtn">登记我的名片</button>
-              </div>
-              <div class="segmented" role="tablist" aria-label="按平台筛选玩家" id="friendPlatformTabs" style="margin-bottom:1rem;">
-                <button type="button" role="tab" aria-selected="true" data-plat="all">全部平台</button>
-                <button type="button" role="tab" aria-selected="false" data-plat="PS5">PS5</button>
-                <button type="button" role="tab" aria-selected="false" data-plat="Xbox">Xbox</button>
-                <button type="button" role="tab" aria-selected="false" data-plat="PC">PC 预备队</button>
-              </div>
-              <div class="friend-list" id="friendList"></div>
+        <div class="lounge-panel" id="loungePanelSquad" role="tabpanel" hidden>
+          <div class="lounge-subbar">
+            <div class="segmented" role="tablist" aria-label="按平台筛选玩家" id="friendPlatformTabs">
+              <button type="button" role="tab" aria-selected="true" data-plat="all">全部平台</button>
+              <button type="button" role="tab" aria-selected="false" data-plat="PS5">PS5</button>
+              <button type="button" role="tab" aria-selected="false" data-plat="Xbox">Xbox</button>
+              <button type="button" role="tab" aria-selected="false" data-plat="PC">PC 预备队</button>
             </div>
-
-            <div>
-              <h3 style="margin-bottom:0.85rem;">四频道玩家聊天室</h3>
-              <div class="segmented" role="tablist" aria-label="切换聊天频道" id="chatChannelTabs" style="margin-bottom:1rem;">
-                <button type="button" role="tab" aria-selected="true" data-ch="#开荒互助">#开荒互助</button>
-                <button type="button" role="tab" aria-selected="false" data-ch="#彩蛋破译">#彩蛋破译</button>
-                <button type="button" role="tab" aria-selected="false" data-ch="#晒车拍照">#晒车拍照</button>
-                <button type="button" role="tab" aria-selected="false" data-ch="#车队预招">#车队预招</button>
-              </div>
-              <div class="chat-box">
-                <div class="chat-messages" id="chatMessages"></div>
-                <form class="chat-form" id="chatForm">
-                  <input type="text" class="chat-input" id="chatAuthorInput" placeholder="昵称" style="max-width:110px;" required>
-                  <input type="text" class="chat-input" id="chatTextInput" placeholder="发一条消息到当前频道..." required>
-                  <button type="submit" class="btn-primary">发送</button>
-                </form>
-              </div>
-            </div>
+            <button type="button" class="btn-primary" id="openFriendBtn">+ 登记我的游戏名片</button>
           </div>
+          <div class="friend-grid" id="friendList"></div>
         </div>
-      </div>
-    </section>
-
-    
-    <section class="section" id="live-comments">
-      <div class="container">
-        <div class="section-head">
-          <div>
-            <h2>全网玩家实时评论区（云端永久同步）</h2>
-            <p class="section-lead">基于 GitHub Discussions 驱动的真实多人评论区。登录后发表你的实测攻略、暗号或组队信息，全网所有访客实时可见。</p>
-          </div>
-        </div>
-        <div class="giscus"></div>
-        <script src="https://giscus.app/client.js"
-          data-repo="ghostmss86-afk/vice-codex"
-          data-repo-id="R_kgDOV85CkQ"
-          data-category="General"
-          data-category-id="DIC_kwDOV85Ckc4DMBn_"
-          data-mapping="pathname"
-          data-strict="0"
-          data-reactions-enabled="1"
-          data-emit-metadata="0"
-          data-input-position="top"
-          data-theme="dark_dimmed"
-          data-lang="zh-CN"
-          data-loading="lazy"
-          crossorigin="anonymous"
-          async>
-        </script>
       </div>
     </section>
 
@@ -586,6 +571,56 @@
       </div>
     </form>
   </aside>
+
+  <div class="auth-modal" id="authModal" role="dialog" aria-modal="true" aria-label="站内账号与游客身份" aria-hidden="true">
+    <div class="drawer-head">
+      <h3 id="authModalTitle">站内账号 / 游客身份</h3>
+      <button type="button" class="btn-secondary" id="closeAuthModalBtn">关闭</button>
+    </div>
+    <div class="drawer-body">
+      <div id="authGuestView">
+        <div class="segmented" role="tablist" aria-label="选择登录或注册" id="authModeTabs" style="margin-bottom:1rem;">
+          <button type="button" role="tab" aria-selected="true" data-auth-mode="register">10 秒站内注册</button>
+          <button type="button" role="tab" aria-selected="false" data-auth-mode="login">老玩家登录</button>
+          <button type="button" role="tab" aria-selected="false" data-auth-mode="guest">免注册游客设置</button>
+        </div>
+        <form id="authRegisterForm" class="auth-form-stack">
+          <p class="auth-hint">注册后立即获得认证徽章 ✓，换设备登录自动同步 100% 奖杯与区域扫荡进度，无需填邮箱。</p>
+          <div class="field"><label for="regUsername">站内用户名（2-24 字符）</label><input type="text" id="regUsername" required minlength="2" maxlength="24" placeholder="例如：VicePilot86"></div>
+          <div class="field"><label for="regPassword">设置密码（至少 4 位）</label><input type="password" id="regPassword" required minlength="4" maxlength="48" placeholder="仅加密存储，支持跨设备找回进度"></div>
+          <div class="calc-grid">
+            <div class="field"><label for="regPlatform">常用平台</label><select id="regPlatform"><option value="PS5">PS5</option><option value="Xbox">Xbox</option><option value="PC">PC 预备队</option></select></div>
+            <div class="field"><label for="regColor">头像徽章色</label><select id="regColor"><option value="#FF5A36">罪城落日橙</option><option value="#2EC4B6">海滨青绿</option><option value="#F5B041">霓虹琥珀金</option><option value="#A855F7">夜店霓虹紫</option><option value="#38BDF8">迈阿密晴空蓝</option></select></div>
+          </div>
+          <button type="submit" class="btn-primary">免费注册并同步当前进度</button>
+        </form>
+        <form id="authLoginForm" class="auth-form-stack" hidden>
+          <p class="auth-hint">输入你的站内用户名和密码，立刻恢复专属徽章与云端 100% 进度。</p>
+          <div class="field"><label for="loginUsername">站内用户名</label><input type="text" id="loginUsername" required maxlength="24" placeholder="例如：VicePilot86"></div>
+          <div class="field"><label for="loginPassword">密码</label><input type="password" id="loginPassword" required maxlength="48" placeholder="输入密码"></div>
+          <button type="submit" class="btn-primary">登录并拉取云端进度</button>
+        </form>
+        <form id="authGuestForm" class="auth-form-stack" hidden>
+          <p class="auth-hint">不想注册也能用全部社交功能！设一个游客昵称，聊天、回复、点表情和传视频都会自动记住。</p>
+          <div class="field"><label for="guestHandleInput">游客昵称</label><input type="text" id="guestHandleInput" required maxlength="24" placeholder="例如：@OceanGuest"></div>
+          <div class="field"><label for="guestPlatformInput">常用平台</label><select id="guestPlatformInput"><option value="PS5">PS5</option><option value="Xbox">Xbox</option><option value="PC">PC 预备队</option></select></div>
+          <button type="submit" class="btn-primary">保存游客身份</button>
+        </form>
+      </div>
+      <div id="authMemberView" hidden>
+        <div class="member-profile-card" id="memberProfileCard"></div>
+        <div class="auth-member-actions">
+          <button type="button" class="btn-primary" id="syncProgressNowBtn">立即同步进度到云端</button>
+          <button type="button" class="btn-secondary" id="logoutBtn">退出登录（切回游客）</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="floating-social-dock" id="floatingDock" aria-label="快捷社交入口">
+    <button type="button" class="dock-btn dock-btn-chat" id="dockChatBtn"><span class="pulse-dot" aria-hidden="true"></span><span id="dockChatLabel">聊天室</span><span class="dock-badge tabular" id="dockChatCount">0</span></button>
+    <button type="button" class="dock-btn dock-btn-post" id="dockPublishBtn">+ 传视频攻略</button>
+  </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="./cloud-config.js"></script>
