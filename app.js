@@ -231,9 +231,21 @@ function escapeHtml(str) { return String(str).replace(/&/g, '&amp;').replace(/</
 function extractYoutubeId(url) { if (!url) return ''; const m = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/); return m ? m[1] : ''; }
 function calcHeroHeat(s) { const base = (s.views24h / 20000) * s.engagement * s.freshness; return Math.round(s.sponsored ? base * 0.92 : base); }
 function calcVideoHeat(v) { const decay = 1 / Math.pow((v.hoursAgo + 6) / 12, 0.55); return Math.round((v.views / 12000) * decay); }
-function formatViews(n) { return n >= 10000 ? (n / 10000).toFixed(1) + '万播放' : n + '播放'; }
+const EN = window.VICE_I18N_EN || null;
+function detectDefaultLang() {
+  const saved = loadStore('vc_lang', null);
+  if (saved === 'zh' || saved === 'en') return saved;
+  const langs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || 'en'];
+  return langs.some(l => String(l).toLowerCase().startsWith('zh')) ? 'zh' : 'en';
+}
+function isEn() { return state.lang === 'en' && Boolean(EN); }
+function formatViews(n) {
+  if (isEn()) return n >= 1000000 ? (n / 1000000).toFixed(2).replace(/\.00$/, '') + EN.ui.viewsM : (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + EN.ui.viewsK : n + EN.ui.viewsSuffix);
+  return n >= 10000 ? (n / 10000).toFixed(1) + '万播放' : n + '播放';
+}
 
 const state = {
+  lang: detectDefaultLang(),
   heroSort: 'heat', heroIndex: 0, videoCat: 'all', videoSort: 'heat', videoLimit: 12,
   activeSweepRegion: 'port-gellhorn', sweepChecked: loadStore('vc_v7_sweep', {}),
   mechCat: 'all', arsenalTab: 'cars', activeChapter: 1, spoilerSafe: false,
@@ -245,6 +257,85 @@ const state = {
   activeCommentKey: null, activeVideoId: null
 };
 
+const ZH_META = {
+  title: document.title,
+  description: (document.querySelector('meta[name="description"]') || {}).content || ''
+};
+function applyStaticI18n() {
+  const en = isEn();
+  document.documentElement.lang = en ? 'en' : 'zh-CN';
+  document.title = en ? EN.meta.title : ZH_META.title;
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.content = en ? EN.meta.description : ZH_META.description;
+  const brandEl = document.querySelector('.brand-wordmark');
+  if (brandEl) {
+    if (!brandEl.dataset.zhHtml) brandEl.dataset.zhHtml = brandEl.innerHTML;
+    brandEl.innerHTML = en ? 'VICE CODEX <span>GTA 6 HUB</span>' : brandEl.dataset.zhHtml;
+  }
+  const btnMap = {
+    '#openSearchBtn': en ? EN.ui.searchBtn : null,
+    '#openPublishBtn': en ? EN.ui.publishBtn : null,
+    '#menuToggleBtn': en ? EN.ui.menuBtn : null
+  };
+  Object.keys(btnMap).forEach(sel => {
+    const el = document.querySelector(sel); if (!el) return;
+    if (!el.dataset.zh) el.dataset.zh = el.textContent;
+    el.textContent = en ? btnMap[sel] : el.dataset.zh;
+  });
+  ['langToggleBtn', 'mobileLangToggleBtn'].forEach(id => {
+    const b = document.getElementById(id); if (!b) return;
+    b.textContent = en ? '中文' : 'EN';
+    b.setAttribute('aria-label', en ? EN.ui.langToggleAria : 'Switch to English');
+  });
+  const spLabel = state.spoilerSafe ? (en ? EN.ui.spoilerOn : '防剧透：开') : (en ? EN.ui.spoilerOff : '防剧透：关');
+  ['spoilerToggle', 'mobileSpoilerToggle'].forEach(id => {
+    const btn = document.getElementById(id); if (btn) { btn.setAttribute('aria-pressed', String(state.spoilerSafe)); btn.textContent = spLabel; }
+  });
+  if (EN) {
+    Object.keys(EN.staticText).forEach(sel => {
+      const el = document.querySelector(sel); if (!el) return;
+      if (!el.dataset.zh) el.dataset.zh = el.textContent;
+      el.textContent = en ? EN.staticText[sel] : el.dataset.zh;
+    });
+    Object.keys(EN.placeholders).forEach(sel => {
+      const el = document.querySelector(sel); if (!el) return;
+      if (!el.dataset.zhPlaceholder) el.dataset.zhPlaceholder = el.getAttribute('placeholder') || '';
+      el.setAttribute('placeholder', en ? EN.placeholders[sel] : el.dataset.zhPlaceholder);
+    });
+    const cells = document.querySelectorAll('#codeVaultStrip .code-vault-cell');
+    cells.forEach((cell, idx) => {
+      const cfg = EN.codeVault[idx]; if (!cfg) return;
+      const pairs = [
+        [cell.querySelector('.code-vault-region'), cfg.region],
+        [cell.querySelector('[data-copy-pin]'), cfg.btn],
+        [cell.querySelector('.code-vault-reward'), cfg.reward],
+        [cell.querySelector('.code-vault-note'), cfg.note]
+      ];
+      pairs.forEach(([node, enVal]) => {
+        if (!node) return;
+        if (!node.dataset.zh) node.dataset.zh = node.textContent;
+        node.textContent = en ? enVal : node.dataset.zh;
+      });
+    });
+  }
+  const giscusFrame = document.querySelector('iframe.giscus-frame');
+  if (giscusFrame && giscusFrame.contentWindow) {
+    giscusFrame.contentWindow.postMessage({ giscus: { setConfig: { lang: en ? 'en' : 'zh-CN' } } }, 'https://giscus.app');
+  }
+}
+function renderAll() {
+  applyStaticI18n(); renderHero(); renderVideos(); renderSweep(); renderCalculator();
+  renderRegions(); renderMechanics(); renderArsenal(); renderChapter(); renderChecklist();
+  renderCommunity(); renderFriends(); renderChat();
+  if (state.activeVideoId) openVideoPlayer(state.activeVideoId);
+}
+function toggleLang() {
+  state.lang = state.lang === 'zh' ? 'en' : 'zh';
+  saveStore('vc_lang', state.lang);
+  renderAll();
+  showToast(isEn() ? EN.ui.toasts.langSwitched : '已切换为中文');
+}
+
 let toastTimer = null;
 function showToast(msg) { const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('visible'), 2500); }
 function copyText(text, successMsg) {
@@ -253,7 +344,7 @@ function copyText(text, successMsg) {
 }
 function fallbackCopy(text, successMsg) {
   const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
-  try { document.execCommand('copy'); showToast(successMsg); } catch (e) { showToast('复制未完成，请手动选中复制'); }
+  try { document.execCommand('copy'); showToast(successMsg); } catch (e) { showToast(isEn() ? EN.ui.toasts.copyFail : '复制未完成，请手动选中复制'); }
   document.body.removeChild(ta);
 }
 
@@ -262,19 +353,22 @@ window.addEventListener('scroll', () => { siteHeader.classList.toggle('scrolled'
 const menuToggleBtn = document.getElementById('menuToggleBtn'), mobileNav = document.getElementById('mobileNav');
 menuToggleBtn.addEventListener('click', () => { const open = mobileNav.classList.toggle('open'); menuToggleBtn.setAttribute('aria-expanded', String(open)); });
 mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { mobileNav.classList.remove('open'); menuToggleBtn.setAttribute('aria-expanded', 'false'); }));
+document.getElementById('langToggleBtn').addEventListener('click', toggleLang);
+document.getElementById('mobileLangToggleBtn').addEventListener('click', () => { mobileNav.classList.remove('open'); menuToggleBtn.setAttribute('aria-expanded', 'false'); toggleLang(); });
 
 function toggleSpoiler() {
   state.spoilerSafe = !state.spoilerSafe;
-  const label = state.spoilerSafe ? '防剧透：开' : '防剧透：关';
+  const label = state.spoilerSafe ? (isEn() ? EN.ui.spoilerOn : '防剧透：开') : (isEn() ? EN.ui.spoilerOff : '防剧透：关');
   ['spoilerToggle', 'mobileSpoilerToggle'].forEach(id => { const btn = document.getElementById(id); if (btn) { btn.setAttribute('aria-pressed', String(state.spoilerSafe)); btn.textContent = label; } });
   renderMechanics(); renderChapter();
-  showToast(state.spoilerSafe ? '已开启防剧透，后期章节与彩蛋已模糊' : '已切换为全玩法无限制展示');
+  showToast(state.spoilerSafe ? (isEn() ? EN.ui.toasts.spoilerOn : '已开启防剧透，后期章节与彩蛋已模糊') : (isEn() ? EN.ui.toasts.spoilerOff : '已切换为全玩法无限制展示'));
 }
 document.getElementById('spoilerToggle').addEventListener('click', toggleSpoiler);
 document.getElementById('mobileSpoilerToggle').addEventListener('click', toggleSpoiler);
 
+function getHeroCopy(s) { return (isEn() && EN.hero[s.id]) ? { ...s, ...EN.hero[s.id] } : s; }
 function getOrderedHeroSlides() {
-  const list = HERO_SLIDES.map(s => ({ ...s, heat: calcHeroHeat(s) }));
+  const list = HERO_SLIDES.map(s => ({ ...getHeroCopy(s), heat: calcHeroHeat(s) }));
   return state.heroSort === 'heat' ? list.sort((a, b) => b.heat - a.heat) : list.sort((a, b) => a.order - b.order);
 }
 let heroAutoTimer = null;
@@ -282,8 +376,9 @@ function renderHero() {
   const slides = getOrderedHeroSlides();
   if (state.heroIndex >= slides.length) state.heroIndex = 0;
   const active = slides[state.heroIndex];
+  const heatLabel = isEn() ? EN.ui.heatPrefix : '实时热度';
   document.getElementById('heroSlides').innerHTML = slides.map((s, idx) => `<div class="hero-slide${idx === state.heroIndex ? ' active' : ''}"><img src="${s.image}" alt="${escapeHtml(s.title)}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${s.fallback}';"></div>`).join('');
-  document.getElementById('heroCopyBlock').innerHTML = `<div class="hero-meta-line tabular">${escapeHtml(active.tag)} / 实时热度 ${active.heat}</div><h1 class="hero-title">${escapeHtml(active.title)}</h1><p class="hero-desc">${escapeHtml(active.desc)}</p><div class="hero-cta-row"><a href="${active.ctaHref}" class="btn-primary">${escapeHtml(active.ctaText)}</a><span class="tabular" style="font-size:var(--text-sm); color:var(--text-muted);">${state.heroIndex + 1} / ${slides.length}</span></div>`;
+  document.getElementById('heroCopyBlock').innerHTML = `<div class="hero-meta-line tabular">${escapeHtml(active.tag)} / ${heatLabel} ${active.heat}</div><h1 class="hero-title">${escapeHtml(active.title)}</h1><p class="hero-desc">${escapeHtml(active.desc)}</p><div class="hero-cta-row"><a href="${active.ctaHref}" class="btn-primary">${escapeHtml(active.ctaText)}</a><span class="tabular" style="font-size:var(--text-sm); color:var(--text-muted);">${state.heroIndex + 1} / ${slides.length}</span></div>`;
   document.getElementById('heroFilmstrip').innerHTML = slides.map((s, idx) => `<button type="button" class="filmstrip-item${idx === state.heroIndex ? ' active' : ''}" role="tab" aria-selected="${idx === state.heroIndex}" data-slide-idx="${idx}"><img class="filmstrip-thumb" src="${s.image}" alt="${escapeHtml(s.shortTitle)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${s.fallback}';"><div class="filmstrip-caption">${escapeHtml(s.shortTitle)}</div></button>`).join('');
 }
 function stepHero(delta) { state.heroIndex = (state.heroIndex + delta + HERO_SLIDES.length) % HERO_SLIDES.length; renderHero(); restartHeroAuto(); }
@@ -295,7 +390,7 @@ document.getElementById('heroSortTabs').addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-hero-sort]'); if (!btn) return;
   state.heroSort = btn.dataset.heroSort; state.heroIndex = 0;
   document.querySelectorAll('#heroSortTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn)));
-  renderHero(); showToast(state.heroSort === 'heat' ? '已按实时热度重排全景封面' : '已切换为官方精选顺序');
+  renderHero(); showToast(state.heroSort === 'heat' ? (isEn() ? EN.ui.toasts.heroHeat : '已按实时热度重排全景封面') : (isEn() ? EN.ui.toasts.heroEditorial : '已切换为官方精选顺序'));
 });
 const heroStage = document.getElementById('heroStage'); let touchStartX = 0;
 heroStage.addEventListener('pointerdown', (e) => { if (!e.target.closest('button, a')) touchStartX = e.clientX; });
@@ -312,16 +407,23 @@ function getFilteredVideos() {
   return list;
 }
 
+function getVideoCopy(v) { return (isEn() && EN.videos[v.id]) ? { ...v, ...EN.videos[v.id] } : v; }
 function renderVideos() {
   const fullList = getFilteredVideos();
   const visible = fullList.slice(0, state.videoLimit);
-  document.getElementById('videoGrid').innerHTML = visible.map(v => {
+  const en = isEn();
+  document.getElementById('videoGrid').innerHTML = visible.map(raw => {
+    const v = getVideoCopy(raw);
     const cKey = 'v-' + v.id; const cCount = (state.comments[cKey] || []).length;
-    return `<article class="video-item" id="video-${v.id}"><div class="video-media-slot" id="slot-${v.id}"><button type="button" class="video-cover-btn" data-inline-play="${v.id}" aria-label="当前卡片直接播放 ${escapeHtml(v.title)}"><img src="https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg" alt="${escapeHtml(v.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg';"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar tabular"><span class="video-heat-num">热度 ${v.heat}</span><span>${v.duration}</span></div></button></div><div class="video-meta-row tabular"><span>${escapeHtml(v.channel)}</span><span>${formatViews(v.views)}</span></div><button type="button" class="video-title-btn" data-play-video="${v.id}">${escapeHtml(v.title)}</button><p style="font-size:var(--text-sm); color:var(--text-muted);">${escapeHtml(v.note)}</p><div class="video-foot-row"><button type="button" class="text-action-btn" style="color:var(--accent); font-weight:700;" data-play-video="${v.id}">影院大屏播放</button><button type="button" class="text-action-btn tabular" data-play-video="${v.id}">评论 (${cCount})</button></div></article>`;
+    const heatLbl = en ? EN.ui.videoHeatPrefix : '热度';
+    const playLbl = en ? EN.ui.cinemaPlay : '影院大屏播放';
+    const cmtLbl = en ? EN.ui.commentsBtn : '评论';
+    return `<article class="video-item" id="video-${v.id}"><div class="video-media-slot" id="slot-${v.id}"><button type="button" class="video-cover-btn" data-inline-play="${v.id}" aria-label="${en ? 'Play inline ' : '当前卡片直接播放 '}${escapeHtml(v.title)}"><img src="https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg" alt="${escapeHtml(v.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg';"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar tabular"><span class="video-heat-num">${heatLbl} ${v.heat}</span><span>${v.duration}</span></div></button></div><div class="video-meta-row tabular"><span>${escapeHtml(v.channel)}</span><span>${formatViews(v.views)}</span></div><button type="button" class="video-title-btn" data-play-video="${v.id}">${escapeHtml(v.title)}</button><p style="font-size:var(--text-sm); color:var(--text-muted);">${escapeHtml(v.note)}</p><div class="video-foot-row"><button type="button" class="text-action-btn" style="color:var(--accent); font-weight:700;" data-play-video="${v.id}">${playLbl}</button><button type="button" class="text-action-btn tabular" data-play-video="${v.id}">${cmtLbl} (${cCount})</button></div></article>`;
   }).join('');
   const wrap = document.getElementById('videoLoadMoreWrap');
   if (visible.length < fullList.length) {
-    wrap.innerHTML = `<button type="button" class="btn-secondary tabular" id="loadMoreVideosBtn">加载更多视频（已显示 ${visible.length} / ${fullList.length}）</button>`;
+    const moreText = en ? EN.ui.loadMore(visible.length, fullList.length) : `加载更多视频（已显示 ${visible.length} / ${fullList.length}）`;
+    wrap.innerHTML = `<button type="button" class="btn-secondary tabular" id="loadMoreVideosBtn">${moreText}</button>`;
     document.getElementById('loadMoreVideosBtn').addEventListener('click', () => { state.videoLimit += 12; renderVideos(); });
   } else { wrap.innerHTML = ''; }
 }
@@ -329,11 +431,14 @@ document.getElementById('videoCatTabs').addEventListener('click', (e) => { const
 document.getElementById('videoSortSelect').addEventListener('change', (e) => { state.videoSort = e.target.value; renderVideos(); });
 
 function renderSweep() {
-  const reg = SWEEP_DATA[state.activeSweepRegion], done = reg.items.filter(i => state.sweepChecked[i.id]).length, pct = Math.round((done / reg.items.length) * 100);
-  document.getElementById('sweepBanner').innerHTML = `<img src="${reg.image}" alt="${escapeHtml(reg.name)}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${reg.fallback}';"><div class="sweep-banner-overlay"><div><div style="font-size:var(--text-sm); color:var(--accent-gold); font-weight:700;">${escapeHtml(reg.sub)}</div><h3 style="font-size:1.35rem;">${escapeHtml(reg.name)}</h3></div><div class="tabular" style="font-weight:900; font-size:1.25rem; color:var(--accent-teal);">${done} / ${reg.items.length} (${pct}%)</div></div>`;
+  const reg = SWEEP_DATA[state.activeSweepRegion], enReg = isEn() ? EN.sweep[state.activeSweepRegion] : null;
+  const done = reg.items.filter(i => state.sweepChecked[i.id]).length, pct = Math.round((done / reg.items.length) * 100);
+  const regName = enReg ? enReg.name : reg.name, regSub = enReg ? enReg.sub : reg.sub;
+  document.getElementById('sweepBanner').innerHTML = `<img src="${reg.image}" alt="${escapeHtml(regName)}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${reg.fallback}';"><div class="sweep-banner-overlay"><div><div style="font-size:var(--text-sm); color:var(--accent-gold); font-weight:700;">${escapeHtml(regSub)}</div><h3 style="font-size:1.35rem;">${escapeHtml(regName)}</h3></div><div class="tabular" style="font-weight:900; font-size:1.25rem; color:var(--accent-teal);">${done} / ${reg.items.length} (${pct}%)</div></div>`;
   document.getElementById('sweepChecklist').innerHTML = reg.items.map(item => {
     const checked = Boolean(state.sweepChecked[item.id]);
-    return `<label class="check-row${checked ? ' done' : ''}"><div class="check-left"><input type="checkbox" class="check-box" data-sweep-id="${item.id}" ${checked ? 'checked' : ''}><div><div class="check-title">${escapeHtml(item.title)}</div><div class="check-sub">${escapeHtml(item.detail)}</div></div></div></label>`;
+    const enItem = enReg && enReg.items[item.id] ? enReg.items[item.id] : item;
+    return `<label class="check-row${checked ? ' done' : ''}"><div class="check-left"><input type="checkbox" class="check-box" data-sweep-id="${item.id}" ${checked ? 'checked' : ''}><div><div class="check-title">${escapeHtml(enItem.title)}</div><div class="check-sub">${escapeHtml(enItem.detail)}</div></div></div></label>`;
   }).join('');
 }
 document.getElementById('sweepRegionTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-sweep]'); if (!btn) return; state.activeSweepRegion = btn.dataset.sweep; document.querySelectorAll('#sweepRegionTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); renderSweep(); });
@@ -341,24 +446,37 @@ document.getElementById('sweepChecklist').addEventListener('change', (e) => { co
 
 function renderCalculator() {
   const ch = Number(document.getElementById('calcChapter').value), bags = Number(document.getElementById('calcVehicle').value), loot = document.getElementById('calcLoot').value, prof = document.getElementById('calcProfile').value;
-  let fence = 'Yasmani（小古巴，珠宝与标记钞票出价最高）', payout = '$15,000 - $25,000', warning = '建议得手后先销赃存 BuckMe 银行，避免通缉扣车没收。';
-  if (loot === 'narcotics') { fence = 'Tyrone（黑市线，违禁品收购价最高）'; payout = bags === 0 ? '无法装袋（请换车）' : `$${(bags * 3500).toLocaleString()} - $${(bags * 5500).toLocaleString()}`; }
-  else if (loot === 'supercar') { fence = ch >= 3 ? 'Randy（罪恶都市超跑单）' : 'Moses（第 2 章 Port Gellhorn 偷车线）'; payout = ch >= 3 ? '$30,000 - $45,000 / 辆' : '$6,000 - $12,000 / 辆'; }
-  else if (loot === 'vault') {
-    fence = 'Yasmani（大额标记钞票）+ 立即存入 BuckMe';
-    if (ch < 3) { payout = '高危警告：尚未获得染料包干扰器'; warning = '第 1-2 章洗劫银行离开建筑会触发染料包毁钱，务必推进到第 3 章拿干扰器再动手！'; }
-    else if (bags === 0) { payout = '无法装袋（摩托车容量 0）'; warning = '请更换厢式货车或皮卡（最高 8 袋），配合双人传袋最大化收益。'; }
-    else { const est = Math.round((bags / 8) * (ch >= 4 ? 205000 : 85000)); payout = `约 $${est.toLocaleString()} / 趟`; warning = ch >= 4 ? '第 4 章大型金库满载 8 袋单趟封顶约 $205,000，撤离时建议换车换装避开 CCTV。' : '第 3 章已解锁干扰器，可安全扫荡银行与贷款店。'; }
-  } else { payout = bags === 0 ? '无法装袋（摩托车容量 0）' : `$${(bags * 4200).toLocaleString()} - $${(bags * 6500).toLocaleString()}`; }
-  const focusNote = prof === 'irredeemable' ? '当前档案为 Irredeemable，已永久失去聚焦充能加成，请备足防弹衣。' : (prof === 'pro' ? '专业路线可配合消音手枪打四肢非致命快速充满 L3+R3 聚焦条。' : '狂徒路线依赖爆头充能聚焦，注意控制路人伤亡防止跌入 Irredeemable。');
-  document.getElementById('calcResultBox').innerHTML = `<div style="font-size:var(--text-sm); color:var(--text-muted);">预估单趟净收益</div><div class="calc-payout tabular">${escapeHtml(payout)}</div><div style="font-size:var(--text-sm);"><strong>最优销赃去向：</strong>${escapeHtml(fence)}</div><div style="font-size:var(--text-sm); color:var(--accent-teal);">${escapeHtml(warning)}</div><div style="font-size:var(--text-sm); color:var(--text-muted);">${escapeHtml(focusNote)}</div>`;
+  const en = isEn();
+  let fence = en ? 'Yasmani (Little Cuba, top buyer for jewelry & marked bills)' : 'Yasmani（小古巴，珠宝与标记钞票出价最高）';
+  let payout = '$15,000 - $25,000';
+  let warning = en ? 'Fence and deposit into BuckMe right away so impounded vehicles never wipe your bags.' : '建议得手后先销赃存 BuckMe 银行，避免通缉扣车没收。';
+  if (loot === 'narcotics') {
+    fence = en ? 'Tyrone (Black market, highest payout for narcotics)' : 'Tyrone（黑市线，违禁品收购价最高）';
+    payout = bags === 0 ? (en ? '0 bag capacity (switch vehicle)' : '无法装袋（请换车）') : `$${(bags * 3500).toLocaleString()} - $${(bags * 5500).toLocaleString()}`;
+  } else if (loot === 'supercar') {
+    fence = ch >= 3 ? (en ? 'Randy (Vice City supercar orders)' : 'Randy（罪恶都市超跑单）') : (en ? 'Moses (Ch. 2 Port Gellhorn car ring)' : 'Moses（第 2 章 Port Gellhorn 偷车线）');
+    payout = ch >= 3 ? (en ? '$30,000 - $45,000 / car' : '$30,000 - $45,000 / 辆') : (en ? '$6,000 - $12,000 / car' : '$6,000 - $12,000 / 辆');
+  } else if (loot === 'vault') {
+    fence = en ? 'Yasmani (Marked Bills) + instant BuckMe deposit' : 'Yasmani（大额标记钞票）+ 立即存入 BuckMe';
+    if (ch < 3) { payout = en ? 'HIGH RISK: No Dye-Pack Jammer yet' : '高危警告：尚未获得染料包干扰器'; warning = en ? 'Bank cash packs explode on exit in Ch. 1-2. Wait until Ch. 3 unlocks the Dye-Pack Jammer.' : '第 1-2 章洗劫银行离开建筑会触发染料包毁钱，务必推进到第 3 章拿干扰器再动手！'; }
+    else if (bags === 0) { payout = en ? '0 bag capacity (motorcycle)' : '无法装袋（摩托车容量 0）'; warning = en ? 'Bring a van or pickup (up to 8 bags) and use duo bag-passing to maximize payout.' : '请更换厢式货车或皮卡（最高 8 袋），配合双人传袋最大化收益。'; }
+    else { const est = Math.round((bags / 8) * (ch >= 4 ? 205000 : 85000)); payout = en ? `~$${est.toLocaleString()} / run` : `约 $${est.toLocaleString()} / 趟`; warning = ch >= 4 ? (en ? 'Ch. 4 major vaults cap near $205,000 on an 8-bag van run. Swap car and outfit after escaping CCTV.' : '第 4 章大型金库满载 8 袋单趟封顶约 $205,000，撤离时建议换车换装避开 CCTV。') : (en ? 'Ch. 3 Jammer unlocked; safe to raid banks and payday loan shops.' : '第 3 章已解锁干扰器，可安全扫荡银行与贷款店。'); }
+  } else { payout = bags === 0 ? (en ? '0 bag capacity (motorcycle)' : '无法装袋（摩托车容量 0）') : `$${(bags * 4200).toLocaleString()} - $${(bags * 6500).toLocaleString()}`; }
+  const focusNote = prof === 'irredeemable' ? (en ? 'Irredeemable permanently removes Focus charge bonuses. Stock extra body armor.' : '当前档案为 Irredeemable，已永久失去聚焦充能加成，请备足防弹衣。') : (prof === 'pro' ? (en ? 'Professional builds charge L3+R3 Focus quickly with suppressed non-lethal limb shots.' : '专业路线可配合消音手枪打四肢非致命快速充满 L3+R3 聚焦条。') : (en ? 'Violent/Psycho builds charge Focus via headshots; avoid civilian kills to stay above Irredeemable.' : '狂徒路线依赖爆头充能聚焦，注意控制路人伤亡防止跌入 Irredeemable。'));
+  document.getElementById('calcResultBox').innerHTML = `<div style="font-size:var(--text-sm); color:var(--text-muted);">${en ? EN.ui.calcEstLabel : '预估单趟净收益'}</div><div class="calc-payout tabular">${escapeHtml(payout)}</div><div style="font-size:var(--text-sm);"><strong>${en ? EN.ui.calcFenceLabel + ' ' : '最优销赃去向：'}</strong>${escapeHtml(fence)}</div><div style="font-size:var(--text-sm); color:var(--accent-teal);">${escapeHtml(warning)}</div><div style="font-size:var(--text-sm); color:var(--text-muted);">${escapeHtml(focusNote)}</div>`;
 }
 ['calcChapter', 'calcVehicle', 'calcLoot', 'calcProfile'].forEach(id => document.getElementById(id).addEventListener('change', renderCalculator));
 
-function renderRegions() { document.getElementById('regionGrid').innerHTML = REGIONS.map(r => `<article class="region-item"><div class="region-media"><img src="${r.image}" alt="${escapeHtml(r.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${r.fallback}';"></div><div class="region-sub">${escapeHtml(r.county)}</div><h3>${escapeHtml(r.name)}</h3><p class="region-desc">${escapeHtml(r.desc)}</p></article>`).join(''); }
+function renderRegions() {
+  document.getElementById('regionGrid').innerHTML = REGIONS.map((r, idx) => {
+    const item = (isEn() && EN.regions[idx]) ? { ...r, ...EN.regions[idx] } : r;
+    return `<article class="region-item"><div class="region-media"><img src="${item.image}" alt="${escapeHtml(item.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${item.fallback}';"></div><div class="region-sub">${escapeHtml(item.county)}</div><h3>${escapeHtml(item.name)}</h3><p class="region-desc">${escapeHtml(item.desc)}</p></article>`;
+  }).join('');
+}
 function renderMechanics() {
   const filtered = MECHANICS.filter(m => state.mechCat === 'all' || m.cat === state.mechCat);
-  document.getElementById('mechanicsGrid').innerHTML = filtered.map(m => {
+  document.getElementById('mechanicsGrid').innerHTML = filtered.map(raw => {
+    const m = (isEn() && EN.mechanics[raw.id]) ? { ...raw, ...EN.mechanics[raw.id] } : raw;
     const mask = state.spoilerSafe && m.spoiler;
     return `<article class="mechanic-entry" id="mech-${m.id}"><div class="entry-meta">${escapeHtml(m.meta)}</div><h3>${escapeHtml(m.title)}</h3><p class="entry-body${mask ? ' spoiler-masked' : ''}" ${mask ? 'data-reveal="true"' : ''}>${escapeHtml(m.body)}</p><div class="entry-tip${mask ? ' spoiler-masked' : ''}" ${mask ? 'data-reveal="true"' : ''}>${escapeHtml(m.tip)}</div></article>`;
   }).join('');
@@ -367,59 +485,68 @@ document.getElementById('mechanicsGrid').addEventListener('click', (e) => { cons
 document.getElementById('mechFilterTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-cat]'); if (!btn) return; state.mechCat = btn.dataset.cat; document.querySelectorAll('#mechFilterTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); renderMechanics(); });
 
 function renderArsenal() {
+  const en = isEn();
+  const carH = en ? EN.ui.tableCarsHead : ['排名', '载具名称', '实测极速分', '级别定位', '获取方式与点位'];
+  const wepH = en ? EN.ui.tableWeaponsHead : ['编号', '传奇武器名称', '武器类型', '获取成本', 'Port Gellhorn 精确点位与触发方式'];
   document.getElementById('arsenalTableWrap').innerHTML = state.arsenalTab === 'cars'
-    ? `<table class="data-table tabular"><thead><tr><th>排名</th><th>载具名称</th><th>实测极速分</th><th>级别定位</th><th>获取方式与点位</th></tr></thead><tbody>${SUPERCARS.map(c => `<tr id="car-${c.rank}"><td class="stat-highlight">#${c.rank}</td><td><strong>${escapeHtml(c.name)}</strong></td><td class="stat-highlight">${escapeHtml(c.speed)}</td><td>${escapeHtml(c.tier)}</td><td style="color:var(--text-muted);">${escapeHtml(c.method)}</td></tr>`).join('')}</tbody></table>`
-    : `<table class="data-table tabular"><thead><tr><th>编号</th><th>传奇武器名称</th><th>武器类型</th><th>获取成本</th><th>Port Gellhorn 精确点位与触发方式</th></tr></thead><tbody>${LEGENDARY_WEAPONS.map(w => `<tr id="weapon-${w.rank}"><td class="stat-highlight">#${w.rank}</td><td><strong>${escapeHtml(w.name)}</strong></td><td>${escapeHtml(w.type)}</td><td class="stat-highlight">${escapeHtml(w.cost)}</td><td style="color:var(--text-muted);">${escapeHtml(w.location)}</td></tr>`).join('')}</tbody></table>`;
+    ? `<table class="data-table tabular"><thead><tr>${carH.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${SUPERCARS.map((raw, idx) => { const c = (en && EN.supercars[idx]) ? { ...raw, ...EN.supercars[idx] } : raw; return `<tr id="car-${c.rank}"><td class="stat-highlight">#${c.rank}</td><td><strong>${escapeHtml(c.name)}</strong></td><td class="stat-highlight">${escapeHtml(c.speed)}</td><td>${escapeHtml(c.tier)}</td><td style="color:var(--text-muted);">${escapeHtml(c.method)}</td></tr>`; }).join('')}</tbody></table>`
+    : `<table class="data-table tabular"><thead><tr>${wepH.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${LEGENDARY_WEAPONS.map((raw, idx) => { const w = (en && EN.weapons[idx]) ? { ...raw, ...EN.weapons[idx] } : raw; return `<tr id="weapon-${w.rank}"><td class="stat-highlight">#${w.rank}</td><td><strong>${escapeHtml(w.name)}</strong></td><td>${escapeHtml(w.type)}</td><td class="stat-highlight">${escapeHtml(w.cost)}</td><td style="color:var(--text-muted);">${escapeHtml(w.location)}</td></tr>`; }).join('')}</tbody></table>`;
 }
 document.getElementById('arsenalTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-arsenal]'); if (!btn) return; state.arsenalTab = btn.dataset.arsenal; document.querySelectorAll('#arsenalTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); renderArsenal(); });
 
 function renderChapter() {
-  const ch = CHAPTERS[state.activeChapter], mask = state.spoilerSafe && ch.spoiler;
-  document.getElementById('chapterPanel').innerHTML = `<div class="chapter-detail"><h3>${escapeHtml(ch.title)}</h3><div class="chapter-metrics"><div><div class="metric-label">主线任务数</div><div class="metric-val tabular">${ch.missions} 个</div></div><div><div class="metric-label">核心区域</div><div class="metric-val">${escapeHtml(ch.region)}</div></div><div><div class="metric-label">阶段收益预期</div><div class="metric-val tabular">${escapeHtml(ch.moneyRate)}</div></div></div><p class="entry-body${mask ? ' spoiler-masked' : ''}" ${mask ? 'data-reveal="true"' : ''}>${escapeHtml(ch.summary)}</p><ul class="mission-list${mask ? ' spoiler-masked' : ''}" ${mask ? 'data-reveal="true"' : ''}>${ch.highlights.map(h => `<li>${escapeHtml(h)}</li>`).join('')}</ul></div><div class="money-panel"><h3>本阶段最优赚钱与销赃渠道</h3><p class="entry-body${mask ? ' spoiler-masked' : ''}" ${mask ? 'data-reveal="true"' : ''}>${escapeHtml(ch.moneyStrategy)}</p><table class="data-table" style="min-width:0;"><thead><tr><th>销赃人</th><th>高价品类</th><th>区域 / 阶段</th></tr></thead><tbody><tr><td><strong>Yasmani</strong></td><td>珠宝、标记钞票</td><td>小古巴 Little Cuba</td></tr><tr><td><strong>Tyrone</strong></td><td>违禁品 Narcotics</td><td>莱奥尼达黑市线</td></tr><tr><td><strong>Moses</strong></td><td>指定偷盗车辆</td><td>第 2 章 Port Gellhorn</td></tr><tr><td><strong>Randy</strong></td><td>稀缺超跑 ($30k+)</td><td>第 3 章 罪恶都市</td></tr></tbody></table></div>`;
+  const en = isEn(), raw = CHAPTERS[state.activeChapter], ch = (en && EN.chapters[state.activeChapter]) ? { ...raw, ...EN.chapters[state.activeChapter] } : raw, mask = state.spoilerSafe && ch.spoiler;
+  const fh = en ? EN.ui.fenceHead : ['销赃人', '高价品类', '区域 / 阶段'];
+  const frows = en ? EN.ui.fenceRows : [['Yasmani', '珠宝、标记钞票', '小古巴 Little Cuba'], ['Tyrone', '违禁品 Narcotics', '莱奥尼达黑市线'], ['Moses', '指定偷盗车辆', '第 2 章 Port Gellhorn'], ['Randy', '稀缺超跑 ($30k+)', '第 3 章 罪恶都市']];
+  document.getElementById('chapterPanel').innerHTML = `<div class="chapter-detail"><h3>${escapeHtml(ch.title)}</h3><div class="chapter-metrics"><div><div class="metric-label">${en ? EN.ui.chMissionsLabel : '主线任务数'}</div><div class="metric-val tabular">${ch.missions}${en ? EN.ui.chMissionsUnit : ' 个'}</div></div><div><div class="metric-label">${en ? EN.ui.chRegionLabel : '核心区域'}</div><div class="metric-val">${escapeHtml(ch.region)}</div></div><div><div class="metric-label">${en ? EN.ui.chMoneyLabel : '阶段收益预期'}</div><div class="metric-val tabular">${escapeHtml(ch.moneyRate)}</div></div></div><p class="entry-body${mask ? ' spoiler-masked' : ''}" ${mask ? 'data-reveal="true"' : ''}>${escapeHtml(ch.summary)}</p><ul class="mission-list${mask ? ' spoiler-masked' : ''}" ${mask ? 'data-reveal="true"' : ''}>${ch.highlights.map(h => `<li>${escapeHtml(h)}</li>`).join('')}</ul></div><div class="money-panel"><h3>${en ? EN.ui.chStrategyTitle : '本阶段最优赚钱与销赃渠道'}</h3><p class="entry-body${mask ? ' spoiler-masked' : ''}" ${mask ? 'data-reveal="true"' : ''}>${escapeHtml(ch.moneyStrategy)}</p><table class="data-table" style="min-width:0;"><thead><tr>${fh.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${frows.map(r => `<tr><td><strong>${r[0]}</strong></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>`;
 }
 document.getElementById('chapterPanel').addEventListener('click', (e) => { const el = e.target.closest('[data-reveal="true"]'); if (el) el.classList.toggle('revealed'); });
 document.getElementById('chapterTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-ch]'); if (!btn) return; state.activeChapter = Number(btn.dataset.ch); document.querySelectorAll('#chapterTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); renderChapter(); });
 
 function getChecklistStats() { let weight = 0, count = 0; CHECKLIST_ITEMS.forEach(item => { if (state.checklist[item.id]) { weight += item.weight; count += 1; } }); return { weight, count }; }
 function renderChecklist() {
-  document.getElementById('checklistGrid').innerHTML = CHECKLIST_ITEMS.map(item => {
+  const en = isEn();
+  document.getElementById('checklistGrid').innerHTML = CHECKLIST_ITEMS.map(raw => {
+    const item = (en && EN.checklist[raw.id]) ? { ...raw, ...EN.checklist[raw.id] } : raw;
     const checked = Boolean(state.checklist[item.id]);
     return `<label class="check-row${checked ? ' done' : ''}"><div class="check-left"><input type="checkbox" class="check-box" data-check-id="${item.id}" ${checked ? 'checked' : ''}><div><div class="check-title">${escapeHtml(item.title)}</div><div class="check-sub">${escapeHtml(item.sub)}</div></div></div><span class="check-weight tabular">+${item.weight}%</span></label>`;
   }).join('');
   const { weight } = getChecklistStats();
   document.getElementById('checklistProgressBar').style.width = `${Math.min(100, weight)}%`;
-  document.getElementById('checklistSummaryText').textContent = `已完成 ${weight.toFixed(1)}%`;
+  document.getElementById('checklistSummaryText').textContent = en ? EN.ui.checklistSummary(weight.toFixed(1)) : `已完成 ${weight.toFixed(1)}%`;
 }
 document.getElementById('checklistGrid').addEventListener('change', (e) => { const box = e.target.closest('input[data-check-id]'); if (!box) return; state.checklist[box.dataset.checkId] = box.checked; saveStore('vc_v7_checklist', state.checklist); renderChecklist(); });
-document.getElementById('resetChecklistBtn').addEventListener('click', () => { state.checklist = {}; saveStore('vc_v7_checklist', state.checklist); renderChecklist(); showToast('已重置进度'); });
+document.getElementById('resetChecklistBtn').addEventListener('click', () => { state.checklist = {}; saveStore('vc_v7_checklist', state.checklist); renderChecklist(); showToast(isEn() ? EN.ui.toasts.checklistReset : '已重置进度'); });
 
 document.getElementById('downloadPosterBtn').addEventListener('click', () => {
-  const { weight, count } = getChecklistStats(), rank = document.getElementById('posterRankSelect').value, doneItems = CHECKLIST_ITEMS.filter(i => state.checklist[i.id]).slice(0, 5);
+  const en = isEn(), { weight, count } = getChecklistStats(), rank = document.getElementById('posterRankSelect').value, doneItems = CHECKLIST_ITEMS.filter(i => state.checklist[i.id]).slice(0, 5);
   const canvas = document.createElement('canvas'); canvas.width = 1200; canvas.height = 630; const ctx = canvas.getContext('2d');
   const grad = ctx.createLinearGradient(0, 0, 1200, 630); grad.addColorStop(0, '#090E16'); grad.addColorStop(0.55, '#131D2E'); grad.addColorStop(1, '#231624');
   ctx.fillStyle = grad; ctx.fillRect(0, 0, 1200, 630);
   const glow = ctx.createRadialGradient(980, 110, 20, 980, 110, 460); glow.addColorStop(0, 'rgba(255, 90, 54, 0.32)'); glow.addColorStop(1, 'rgba(255, 90, 54, 0)');
   ctx.fillStyle = glow; ctx.fillRect(0, 0, 1200, 630);
   ctx.strokeStyle = 'rgba(245, 242, 235, 0.16)'; ctx.lineWidth = 2; ctx.strokeRect(36, 36, 1128, 558);
-  ctx.fillStyle = '#F5B041'; ctx.font = '700 22px "Space Grotesk", "Noto Sans SC", sans-serif'; ctx.fillText('VICE CODEX / 莱奥尼达 100% 奖杯战绩卡', 72, 98);
-  ctx.fillStyle = '#F5F2EB'; ctx.font = '900 58px "Space Grotesk", "Noto Sans SC", sans-serif'; ctx.fillText(`白金总进度 ${weight.toFixed(1)}%`, 72, 178);
-  ctx.fillStyle = '#2EC4B6'; ctx.font = '700 26px "Space Grotesk", "Noto Sans SC", sans-serif'; ctx.fillText(`已完成 ${count} / ${CHECKLIST_ITEMS.length} 核心指标   |   犯罪档案：${rank}`, 72, 228);
+  ctx.fillStyle = '#F5B041'; ctx.font = '700 22px "Space Grotesk", "Noto Sans SC", sans-serif'; ctx.fillText(en ? EN.ui.posterHeader : 'VICE CODEX / 莱奥尼达 100% 奖杯战绩卡', 72, 98);
+  ctx.fillStyle = '#F5F2EB'; ctx.font = '900 58px "Space Grotesk", "Noto Sans SC", sans-serif'; ctx.fillText(en ? EN.ui.posterProgress(weight.toFixed(1)) : `白金总进度 ${weight.toFixed(1)}%`, 72, 178);
+  ctx.fillStyle = '#2EC4B6'; ctx.font = '700 26px "Space Grotesk", "Noto Sans SC", sans-serif'; ctx.fillText(en ? EN.ui.posterSub(count, CHECKLIST_ITEMS.length, rank) : `已完成 ${count} / ${CHECKLIST_ITEMS.length} 核心指标   |   犯罪档案：${rank}`, 72, 228);
   ctx.fillStyle = 'rgba(245, 242, 235, 0.14)'; ctx.fillRect(72, 260, 1056, 18);
   ctx.fillStyle = '#FF5A36'; ctx.fillRect(72, 260, Math.max(12, Math.round(1056 * (Math.min(100, weight) / 100))), 18);
   ctx.fillStyle = '#9AA7B8'; ctx.font = '500 22px "Noto Sans SC", sans-serif';
-  if (doneItems.length) { ctx.fillText('已攻克里程碑：', 72, 330); ctx.fillStyle = '#F5F2EB'; doneItems.forEach((item, idx) => ctx.fillText(`✓ ${item.title}`, 72, 372 + idx * 36)); }
-  else { ctx.fillText('刚刚踏入莱奥尼达群岛，即将开启 100% 漫漫长路冲刺！', 72, 345); }
-  ctx.fillStyle = 'rgba(245, 242, 235, 0.55)'; ctx.font = '500 20px "Space Grotesk", "Noto Sans SC", sans-serif'; ctx.fillText('罪城全书 VICE CODEX v8.0  |  GTA 6 开源攻略与玩家社区', 72, 560);
+  if (doneItems.length) { ctx.fillText(en ? EN.ui.posterDoneTitle : '已攻克里程碑：', 72, 330); ctx.fillStyle = '#F5F2EB'; doneItems.forEach((raw, idx) => { const item = (en && EN.checklist[raw.id]) ? EN.checklist[raw.id] : raw; ctx.fillText(`✓ ${item.title}`, 72, 372 + idx * 36); }); }
+  else { ctx.fillText(en ? EN.ui.posterEmpty : '刚刚踏入莱奥尼达群岛，即将开启 100% 漫漫长路冲刺！', 72, 345); }
+  ctx.fillStyle = 'rgba(245, 242, 235, 0.55)'; ctx.font = '500 20px "Space Grotesk", "Noto Sans SC", sans-serif'; ctx.fillText(en ? EN.ui.posterFooter : '罪城全书 VICE CODEX v8.0  |  GTA 6 开源攻略与玩家社区', 72, 560);
   const link = document.createElement('a'); link.download = `vice-codex-100-progress-${Math.round(weight)}pct.png`; link.href = canvas.toDataURL('image/png'); link.click();
-  showToast('已下载 100% 战绩海报 PNG');
+  showToast(en ? EN.ui.toasts.posterSaved : '已下载 100% 战绩海报 PNG');
 });
 
+function getPostCopy(p) { return (isEn() && EN.defaultPosts[p.id]) ? { ...p, ...EN.defaultPosts[p.id] } : p; }
 function renderCommunity() {
-  const list = document.getElementById('communityList'), filtered = state.posts.filter(p => state.postCat === 'all' || p.category === state.postCat).sort((a, b) => b.upvotes - a.upvotes);
-  if (!filtered.length) { list.innerHTML = '<p class="empty-state">当前分类还没有投稿，点击右上角“发布攻略”抢先分享。</p>'; return; }
-  list.innerHTML = filtered.map(p => {
+  const en = isEn(), list = document.getElementById('communityList'), filtered = state.posts.filter(p => state.postCat === 'all' || p.category === state.postCat).sort((a, b) => b.upvotes - a.upvotes);
+  if (!filtered.length) { list.innerHTML = `<p class="empty-state">${en ? EN.ui.emptyPosts : '当前分类还没有投稿，点击右上角“发布攻略”抢先分享。'}</p>`; return; }
+  list.innerHTML = filtered.map(raw => {
+    const p = getPostCopy(raw), catLabel = en ? (EN.ui.postCategories[p.category] || p.category) : p.category;
     const voted = Boolean(state.upvoted[p.id]), ytId = extractYoutubeId(p.videoUrl), cCount = (state.comments[p.id] || []).length;
-    return `<article class="post-row" id="post-${p.id}"><button type="button" class="upvote-btn tabular" data-upvote="${p.id}" aria-pressed="${voted}"><span>&#9650;</span><span>${p.upvotes}</span></button><div><div class="post-meta">${escapeHtml(p.category)} / ${escapeHtml(p.author)}</div><h3>${escapeHtml(p.title)}</h3><p class="post-body">${escapeHtml(p.body)}</p>${ytId ? `<a href="${escapeHtml(p.videoUrl)}" target="_blank" rel="noopener noreferrer"><img class="post-thumb" src="https://i.ytimg.com/vi/${ytId}/hqdefault.jpg" alt="${escapeHtml(p.title)}" loading="lazy" referrerpolicy="no-referrer"></a>` : ''}<div class="post-toolbar"><button type="button" class="text-action-btn tabular" data-open-comments="${p.id}" data-comment-title="${escapeHtml(p.title)}">展开评论 (${cCount})</button><button type="button" class="text-action-btn" data-copy-md="${p.id}">复制 GitHub PR 模板</button></div></div></article>`;
+    return `<article class="post-row" id="post-${p.id}"><button type="button" class="upvote-btn tabular" data-upvote="${p.id}" aria-pressed="${voted}"><span>&#9650;</span><span>${p.upvotes}</span></button><div><div class="post-meta">${escapeHtml(catLabel)} / ${escapeHtml(p.author)}</div><h3>${escapeHtml(p.title)}</h3><p class="post-body">${escapeHtml(p.body)}</p>${ytId ? `<a href="${escapeHtml(p.videoUrl)}" target="_blank" rel="noopener noreferrer"><img class="post-thumb" src="https://i.ytimg.com/vi/${ytId}/hqdefault.jpg" alt="${escapeHtml(p.title)}" loading="lazy" referrerpolicy="no-referrer"></a>` : ''}<div class="post-toolbar"><button type="button" class="text-action-btn tabular" data-open-comments="${p.id}" data-comment-title="${escapeHtml(p.title)}">${en ? EN.ui.expandComments(cCount) : `展开评论 (${cCount})`}</button><button type="button" class="text-action-btn" data-copy-md="${p.id}">${en ? EN.ui.copyPrBtn : '复制 GitHub PR 模板'}</button></div></div></article>`;
   }).join('');
 }
 document.getElementById('communityFilterTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-post-cat]'); if (!btn) return; state.postCat = btn.dataset.postCat; document.querySelectorAll('#communityFilterTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); renderCommunity(); });
@@ -431,19 +558,21 @@ document.getElementById('communityList').addEventListener('click', (e) => {
     saveStore('vc_v7_upvoted', state.upvoted); saveStore('vc_v7_posts', state.posts); renderCommunity(); return;
   }
   const mdBtn = e.target.closest('button[data-copy-md]');
-  if (mdBtn) { const p = state.posts.find(x => x.id === mdBtn.dataset.copyMd); if (p) copyText(`---\ntitle: "${p.title}"\nauthor: "${p.author}"\ncategory: "${p.category}"\nvideoUrl: "${p.videoUrl || ''}"\n---\n\n${p.body}\n`, '已复制 GitHub PR 模板'); }
+  if (mdBtn) { const raw = state.posts.find(x => x.id === mdBtn.dataset.copyMd); if (raw) { const p = getPostCopy(raw); copyText(`---\ntitle: "${p.title}"\nauthor: "${p.author}"\ncategory: "${p.category}"\nvideoUrl: "${p.videoUrl || ''}"\n---\n\n${p.body}\n`, isEn() ? EN.ui.toasts.prCopied : '已复制 GitHub PR 模板'); } }
 });
 
 function renderFriends() {
-  const list = document.getElementById('friendList'), filtered = state.friends.filter(f => state.friendPlat === 'all' || f.platform === state.friendPlat);
-  if (!filtered.length) { list.innerHTML = '<p class="empty-state">该平台暂无名片，点击“登记我的名片”成为首位召集人。</p>'; return; }
-  list.innerHTML = filtered.map(f => `<div class="friend-row"><div><div class="friend-name">${escapeHtml(f.gameId)} <span style="font-size:var(--text-sm); color:var(--accent-gold); font-weight:500;">(${escapeHtml(f.platform)})</span></div><div class="friend-detail">${escapeHtml(f.note)}</div></div><button type="button" class="btn-secondary" data-copy-id="${escapeHtml(f.gameId)}">复制游戏 ID</button></div>`).join('');
+  const en = isEn(), list = document.getElementById('friendList'), filtered = state.friends.filter(f => state.friendPlat === 'all' || f.platform === state.friendPlat);
+  if (!filtered.length) { list.innerHTML = `<p class="empty-state">${en ? EN.ui.emptyFriends : '该平台暂无名片，点击“登记我的名片”成为首位召集人。'}</p>`; return; }
+  list.innerHTML = filtered.map(f => { const note = (en && EN.defaultFriends[f.id]) ? EN.defaultFriends[f.id] : f.note; return `<div class="friend-row"><div><div class="friend-name">${escapeHtml(f.gameId)} <span style="font-size:var(--text-sm); color:var(--accent-gold); font-weight:500;">(${escapeHtml(f.platform)})</span></div><div class="friend-detail">${escapeHtml(note)}</div></div><button type="button" class="btn-secondary" data-copy-id="${escapeHtml(f.gameId)}">${en ? EN.ui.copyIdBtn : '复制游戏 ID'}</button></div>`; }).join('');
 }
 document.getElementById('friendPlatformTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-plat]'); if (!btn) return; state.friendPlat = btn.dataset.plat; document.querySelectorAll('#friendPlatformTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); renderFriends(); });
-document.getElementById('friendList').addEventListener('click', (e) => { const btn = e.target.closest('button[data-copy-id]'); if (btn) copyText(btn.dataset.copyId, '已复制游戏 ID：' + btn.dataset.copyId); });
+document.getElementById('friendList').addEventListener('click', (e) => { const btn = e.target.closest('button[data-copy-id]'); if (btn) copyText(btn.dataset.copyId, isEn() ? EN.ui.toasts.idCopied(btn.dataset.copyId) : '已复制游戏 ID：' + btn.dataset.copyId); });
 
 function renderChat() {
-  const box = document.getElementById('chatMessages'), msgs = state.chatMessages[state.chatChannel] || [];
+  const en = isEn(), box = document.getElementById('chatMessages'), baseMsgs = state.chatMessages[state.chatChannel] || [];
+  const enSeed = (en && EN.defaultChat[state.chatChannel]) ? EN.defaultChat[state.chatChannel] : null;
+  const msgs = baseMsgs.map((m, idx) => (enSeed && enSeed[idx] && DEFAULT_CHAT[state.chatChannel] && DEFAULT_CHAT[state.chatChannel][idx] && m.text === DEFAULT_CHAT[state.chatChannel][idx].text) ? enSeed[idx] : m);
   box.innerHTML = msgs.map(m => `<div class="chat-msg"><div class="chat-msg-head"><span class="chat-msg-author">${escapeHtml(m.author)}</span><span class="tabular">${escapeHtml(m.time)}</span></div><div style="font-size:var(--text-sm); color:var(--text-primary);">${escapeHtml(m.text)}</div></div>`).join('');
   box.scrollTop = box.scrollHeight;
 }
@@ -454,7 +583,7 @@ document.getElementById('chatForm').addEventListener('submit', (e) => {
   const author = authorRaw.startsWith('@') ? authorRaw : '@' + authorRaw, now = new Date(), time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
   if (!state.chatMessages[state.chatChannel]) state.chatMessages[state.chatChannel] = [];
   state.chatMessages[state.chatChannel].push({ author, time, text }); saveStore('vc_v7_chat', state.chatMessages);
-  document.getElementById('chatTextInput').value = ''; renderChat(); showToast('已发送到 ' + state.chatChannel);
+  document.getElementById('chatTextInput').value = ''; renderChat(); showToast(isEn() ? EN.ui.toasts.chatSent(EN.ui.chatChannels[state.chatChannel] || state.chatChannel) : '已发送到 ' + state.chatChannel);
 });
 
 const backdrop = document.getElementById('backdrop'), videoModal = document.getElementById('videoModal'), publishDrawer = document.getElementById('publishDrawer'), commentDrawer = document.getElementById('commentDrawer'), friendDrawer = document.getElementById('friendDrawer'), searchModal = document.getElementById('searchModal');
@@ -470,32 +599,39 @@ document.getElementById('closeVideoModalBtn').addEventListener('click', closeAll
 document.getElementById('openPublishBtn').addEventListener('click', () => openOverlay(publishDrawer));
 document.getElementById('openFriendBtn').addEventListener('click', () => openOverlay(friendDrawer));
 
-function renderVideoModalComments() {
-  const cKey = 'v-' + state.activeVideoId, list = document.getElementById('vmCommentList'), items = state.comments[cKey] || [];
-  list.innerHTML = items.length ? items.map(c => `<div class="chat-msg"><div class="chat-msg-head"><span class="chat-msg-author">${escapeHtml(c.author)}</span><span class="tabular">${escapeHtml(c.time)}</span></div><p style="font-size:var(--text-sm); color:var(--text-primary);">${escapeHtml(c.text)}</p></div>`).join('') : '<p class="empty-state" style="padding:0.75rem 0;">暂无评论，写下你的第一条实测反馈。</p>';
+function getLocalizedComments(key) {
+  const base = state.comments[key] || [];
+  if (!isEn() || !EN.defaultComments[key]) return base;
+  const enSeed = EN.defaultComments[key], zhSeed = DEFAULT_COMMENTS[key] || [];
+  return base.map((c, idx) => (enSeed[idx] && zhSeed[idx] && c.text === zhSeed[idx].text) ? enSeed[idx] : c);
 }
-function playInlineVideo(vid){const slot=document.getElementById("slot-"+vid),v=VIDEOS.find(x=>x.id===vid);if(!slot||!v)return;slot.innerHTML=`<iframe class="video-inline-iframe" src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&playsinline=1" title="${escapeHtml(v.title)}" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;}
+function renderVideoModalComments() {
+  const cKey = 'v-' + state.activeVideoId, list = document.getElementById('vmCommentList'), items = getLocalizedComments(cKey);
+  list.innerHTML = items.length ? items.map(c => `<div class="chat-msg"><div class="chat-msg-head"><span class="chat-msg-author">${escapeHtml(c.author)}</span><span class="tabular">${escapeHtml(c.time)}</span></div><p style="font-size:var(--text-sm); color:var(--text-primary);">${escapeHtml(c.text)}</p></div>`).join('') : `<p class="empty-state" style="padding:0.75rem 0;">${isEn() ? EN.ui.emptyVideoComments : '暂无评论，写下你的第一条实测反馈。'}</p>`;
+}
+function playInlineVideo(vid){const slot=document.getElementById("slot-"+vid),raw=VIDEOS.find(x=>x.id===vid);if(!slot||!raw)return;const v=getVideoCopy(raw);slot.innerHTML=`<iframe class="video-inline-iframe" src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&playsinline=1" title="${escapeHtml(v.title)}" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;}
 function openVideoPlayer(vid) {
-  const v = VIDEOS.find(x => x.id === vid); if (!v) return;
+  const raw = VIDEOS.find(x => x.id === vid); if (!raw) return;
+  const v = getVideoCopy(raw);
   openOverlay(videoModal); state.activeVideoId = vid;
   document.getElementById('videoIframeWrap').innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0" title="${escapeHtml(v.title)}" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
   document.getElementById('vmTitle').textContent = v.title;
-  document.getElementById('vmMeta').textContent = `${v.channel} / ${formatViews(v.views)} / 时长 ${v.duration}`;
+  document.getElementById('vmMeta').textContent = isEn() ? EN.ui.vmMeta(v.channel, formatViews(v.views), v.duration) : `${v.channel} / ${formatViews(v.views)} / 时长 ${v.duration}`;
   document.getElementById('vmNote').textContent = v.note;
   document.getElementById('vmExtLink').href = `https://www.youtube.com/watch?v=${vid}`;
   renderVideoModalComments();
 }
 
 document.body.addEventListener('click', (e) => {
-  const pinBtn = e.target.closest('[data-copy-pin]'); if (pinBtn) { copyText(pinBtn.dataset.copyPin, '已复制密码：' + pinBtn.dataset.copyPin); return; }
+  const pinBtn = e.target.closest('[data-copy-pin]'); if (pinBtn) { copyText(pinBtn.dataset.copyPin, isEn() ? EN.ui.toasts.pinCopied(pinBtn.dataset.copyPin) : '已复制密码：' + pinBtn.dataset.copyPin); return; }
   const inlineBtn = e.target.closest('[data-inline-play]'); if (inlineBtn) { playInlineVideo(inlineBtn.dataset.inlinePlay); return; }
   const playBtn = e.target.closest('[data-play-video]');
   if (playBtn) { openVideoPlayer(playBtn.dataset.playVideo); return; }
   const cBtn = e.target.closest('button[data-open-comments]');
   if (cBtn) {
-    state.activeCommentKey = cBtn.dataset.openComments; document.getElementById('commentDrawerTitle').textContent = '评论：' + cBtn.dataset.commentTitle;
-    const list = document.getElementById('commentList'), items = state.comments[state.activeCommentKey] || [];
-    list.innerHTML = items.length ? items.map(c => `<div class="chat-msg"><div class="chat-msg-head"><span class="chat-msg-author">${escapeHtml(c.author)}</span><span class="tabular">${escapeHtml(c.time)}</span></div><p style="font-size:var(--text-sm); color:var(--text-primary);">${escapeHtml(c.text)}</p></div>`).join('') : '<p class="empty-state">还没有人讨论这条内容，在下方写下第一条实测心得。</p>';
+    state.activeCommentKey = cBtn.dataset.openComments; document.getElementById('commentDrawerTitle').textContent = (isEn() ? EN.ui.commentDrawerPrefix : '评论：') + cBtn.dataset.commentTitle;
+    const list = document.getElementById('commentList'), items = getLocalizedComments(state.activeCommentKey);
+    list.innerHTML = items.length ? items.map(c => `<div class="chat-msg"><div class="chat-msg-head"><span class="chat-msg-author">${escapeHtml(c.author)}</span><span class="tabular">${escapeHtml(c.time)}</span></div><p style="font-size:var(--text-sm); color:var(--text-primary);">${escapeHtml(c.text)}</p></div>`).join('') : `<p class="empty-state">${isEn() ? EN.ui.emptyDrawerComments : '还没有人讨论这条内容，在下方写下第一条实测心得。'}</p>`;
     openOverlay(commentDrawer);
   }
 });
@@ -505,8 +641,8 @@ document.getElementById('vmCommentForm').addEventListener('submit', (e) => {
   const authorRaw = document.getElementById('vmCommentAuthor').value.trim(), text = document.getElementById('vmCommentText').value.trim(); if (!authorRaw || !text) return;
   const cKey = 'v-' + state.activeVideoId, author = authorRaw.startsWith('@') ? authorRaw : '@' + authorRaw;
   if (!state.comments[cKey]) state.comments[cKey] = [];
-  state.comments[cKey].push({ author, time: '刚刚', text }); saveStore('vc_v7_comments', state.comments);
-  document.getElementById('vmCommentText').value = ''; renderVideoModalComments(); renderVideos(); showToast('已发表视频评论');
+  state.comments[cKey].push({ author, time: isEn() ? EN.ui.justNow : '刚刚', text }); saveStore('vc_v7_comments', state.comments);
+  document.getElementById('vmCommentText').value = ''; renderVideoModalComments(); renderVideos(); showToast(isEn() ? EN.ui.toasts.videoCommented : '已发表视频评论');
 });
 
 document.getElementById('commentForm').addEventListener('submit', (e) => {
@@ -514,10 +650,10 @@ document.getElementById('commentForm').addEventListener('submit', (e) => {
   const authorRaw = document.getElementById('commentAuthor').value.trim(), text = document.getElementById('commentBody').value.trim(); if (!authorRaw || !text) return;
   const author = authorRaw.startsWith('@') ? authorRaw : '@' + authorRaw;
   if (!state.comments[state.activeCommentKey]) state.comments[state.activeCommentKey] = [];
-  state.comments[state.activeCommentKey].push({ author, time: '刚刚', text }); saveStore('vc_v7_comments', state.comments);
+  state.comments[state.activeCommentKey].push({ author, time: isEn() ? EN.ui.justNow : '刚刚', text }); saveStore('vc_v7_comments', state.comments);
   document.getElementById('commentBody').value = '';
-  document.getElementById('commentList').innerHTML = state.comments[state.activeCommentKey].map(c => `<div class="chat-msg"><div class="chat-msg-head"><span class="chat-msg-author">${escapeHtml(c.author)}</span><span class="tabular">${escapeHtml(c.time)}</span></div><p style="font-size:var(--text-sm); color:var(--text-primary);">${escapeHtml(c.text)}</p></div>`).join('');
-  renderCommunity(); showToast('已发表评论');
+  document.getElementById('commentList').innerHTML = getLocalizedComments(state.activeCommentKey).map(c => `<div class="chat-msg"><div class="chat-msg-head"><span class="chat-msg-author">${escapeHtml(c.author)}</span><span class="tabular">${escapeHtml(c.time)}</span></div><p style="font-size:var(--text-sm); color:var(--text-primary);">${escapeHtml(c.text)}</p></div>`).join('');
+  renderCommunity(); showToast(isEn() ? EN.ui.toasts.commented : '已发表评论');
 });
 
 document.getElementById('publishForm').addEventListener('submit', (e) => {
@@ -526,7 +662,7 @@ document.getElementById('publishForm').addEventListener('submit', (e) => {
   if (!title || !authorRaw || !body) return;
   const newPost = { id: 'p-' + Date.now(), title, author: authorRaw.startsWith('@') ? authorRaw : '@' + authorRaw, category, videoUrl, upvotes: 1, body };
   state.posts.unshift(newPost); state.upvoted[newPost.id] = true; saveStore('vc_v7_posts', state.posts); saveStore('vc_v7_upvoted', state.upvoted);
-  e.target.reset(); closeAllOverlays(); renderCommunity(); document.getElementById('lounge').scrollIntoView({ behavior: 'smooth' }); showToast('已发布攻略');
+  e.target.reset(); closeAllOverlays(); renderCommunity(); document.getElementById('lounge').scrollIntoView({ behavior: 'smooth' }); showToast(isEn() ? EN.ui.toasts.guidePublished : '已发布攻略');
 });
 
 document.getElementById('friendForm').addEventListener('submit', (e) => {
@@ -534,11 +670,11 @@ document.getElementById('friendForm').addEventListener('submit', (e) => {
   const gameId = document.getElementById('friendGameId').value.trim(), platform = document.getElementById('friendPlatform').value, note = document.getElementById('friendNote').value.trim();
   if (!gameId || !note) return;
   state.friends.unshift({ id: 'f-' + Date.now(), gameId, platform, note }); saveStore('vc_v7_friends', state.friends);
-  e.target.reset(); closeAllOverlays(); renderFriends(); showToast('已保存名片');
+  e.target.reset(); closeAllOverlays(); renderFriends(); showToast(isEn() ? EN.ui.toasts.friendSaved : '已保存名片');
 });
 
-document.getElementById('exportJsonBtn').addEventListener('click', () => copyText(JSON.stringify({ project: 'VICE CODEX v8.0 (MIT)', exportedAt: new Date().toISOString(), videosCount: VIDEOS.length, posts: state.posts, friends: state.friends }, null, 2), '已复制社区数据 JSON'));
-document.getElementById('sponsorActionBtn').addEventListener('click', () => copyText('罪城全书 VICE CODEX v8.0 商业合作：支持首页焦点轮播原生赞助位与页底主机外设/加速器导购席位，零弹窗广告。', '已复制商业合作说明'));
+document.getElementById('exportJsonBtn').addEventListener('click', () => copyText(JSON.stringify({ project: 'VICE CODEX v8.0 (MIT)', exportedAt: new Date().toISOString(), videosCount: VIDEOS.length, posts: state.posts, friends: state.friends }, null, 2), isEn() ? EN.ui.toasts.jsonCopied : '已复制社区数据 JSON'));
+document.getElementById('sponsorActionBtn').addEventListener('click', () => copyText(isEn() ? EN.ui.sponsorCopyText : '罪城全书 VICE CODEX v8.0 商业合作：支持首页焦点轮播原生赞助位与页底主机外设/加速器导购席位，零弹窗广告。', isEn() ? EN.ui.toasts.sponsorCopied : '已复制商业合作说明'));
 
 const globalSearchInput = document.getElementById('globalSearchInput'), searchResultsEl = document.getElementById('searchResults');
 function openSearch() { openOverlay(searchModal); renderGlobalSearch(''); setTimeout(() => globalSearchInput.focus(), 40); }
@@ -547,18 +683,18 @@ document.getElementById('mobileSearchBtn').addEventListener('click', () => { mob
 document.getElementById('closeSearchBtn').addEventListener('click', closeAllOverlays);
 
 function buildSearchIndex() {
-  const items = [];
-  VIDEOS.forEach(v => items.push({ type: '站内视频', title: v.title, sub: v.channel + ' / ' + v.note, playId: v.id }));
-  MECHANICS.forEach(m => items.push({ type: '机制密码', title: m.title, sub: m.body + ' ' + m.tip, target: '#mech-' + m.id, action: () => { state.mechCat = 'all'; renderMechanics(); } }));
-  SUPERCARS.forEach(c => items.push({ type: '极速超跑', title: c.name + ' (' + c.speed + ')', sub: c.method, target: '#car-' + c.rank, action: () => { state.arsenalTab = 'cars'; renderArsenal(); } }));
-  LEGENDARY_WEAPONS.forEach(w => items.push({ type: '传奇武器', title: w.name, sub: w.location + ' ' + w.cost, target: '#weapon-' + w.rank, action: () => { state.arsenalTab = 'weapons'; renderArsenal(); } }));
-  state.posts.forEach(p => items.push({ type: '社区投稿', title: p.title, sub: p.author + ' ' + p.body, target: '#post-' + p.id, action: () => { state.postCat = 'all'; renderCommunity(); } }));
+  const en = isEn(), t = en ? EN.ui.searchTypes : { video: '站内视频', mechanic: '机制密码', car: '极速超跑', weapon: '传奇武器', post: '社区投稿' }, items = [];
+  VIDEOS.forEach(raw => { const v = getVideoCopy(raw); items.push({ type: t.video, title: v.title, sub: v.channel + ' / ' + v.note, playId: v.id }); });
+  MECHANICS.forEach(raw => { const m = (en && EN.mechanics[raw.id]) ? { ...raw, ...EN.mechanics[raw.id] } : raw; items.push({ type: t.mechanic, title: m.title, sub: m.body + ' ' + m.tip, target: '#mech-' + m.id, action: () => { state.mechCat = 'all'; renderMechanics(); } }); });
+  SUPERCARS.forEach((raw, idx) => { const c = (en && EN.supercars[idx]) ? { ...raw, ...EN.supercars[idx] } : raw; items.push({ type: t.car, title: c.name + ' (' + c.speed + ')', sub: c.method, target: '#car-' + c.rank, action: () => { state.arsenalTab = 'cars'; renderArsenal(); } }); });
+  LEGENDARY_WEAPONS.forEach((raw, idx) => { const w = (en && EN.weapons[idx]) ? { ...raw, ...EN.weapons[idx] } : raw; items.push({ type: t.weapon, title: w.name, sub: w.location + ' ' + w.cost, target: '#weapon-' + w.rank, action: () => { state.arsenalTab = 'weapons'; renderArsenal(); } }); });
+  state.posts.forEach(raw => { const p = getPostCopy(raw); items.push({ type: t.post, title: p.title, sub: p.author + ' ' + p.body, target: '#post-' + p.id, action: () => { state.postCat = 'all'; renderCommunity(); } }); });
   return items;
 }
 function renderGlobalSearch(query) {
   const q = query.trim().toLowerCase(), index = buildSearchIndex();
   const matches = q ? index.filter(item => (item.title + ' ' + item.sub + ' ' + item.type).toLowerCase().includes(q)).slice(0, 14) : index.slice(0, 8);
-  if (!matches.length) { searchResultsEl.innerHTML = '<p class="empty-state">没有找到匹配条目。试试搜索“2314”“085355”“Emerus”“作弊码”或“汤米”。</p>'; return; }
+  if (!matches.length) { searchResultsEl.innerHTML = `<p class="empty-state">${isEn() ? EN.ui.searchEmpty : '没有找到匹配条目。试试搜索“2314”“085355”“Emerus”“作弊码”或“汤米”。'}</p>`; return; }
   searchResultsEl.innerHTML = matches.map((m, idx) => `<div class="search-result-row" data-sr-idx="${idx}"><div><div style="font-weight:700;">${escapeHtml(m.title)}</div><div style="font-size:var(--text-sm); color:var(--text-muted);">${escapeHtml(m.sub.slice(0, 72))}</div></div><span class="search-result-type">${escapeHtml(m.type)}</span></div>`).join('');
   searchResultsEl._matches = matches;
 }
@@ -580,4 +716,4 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight') stepHero(1);
 });
 
-renderHero(); restartHeroAuto(); renderVideos(); renderSweep(); renderCalculator(); renderRegions(); renderMechanics(); renderArsenal(); renderChapter(); renderChecklist(); renderCommunity(); renderFriends(); renderChat();
+renderAll(); restartHeroAuto();

@@ -28,6 +28,7 @@
         </ul>
       </nav>
       <div class="header-actions">
+        <button type="button" class="lang-toggle" id="langToggleBtn" aria-label="切换中英文">EN</button>
         <button type="button" class="search-trigger" id="openSearchBtn">搜索 Cmd+K</button>
         <button type="button" class="spoiler-toggle" id="spoilerToggle" aria-pressed="false">防剧透：关</button>
         <button type="button" class="btn-primary" id="openPublishBtn">发布攻略</button>
@@ -44,6 +45,7 @@
       <a href="#checklist">100% 奖杯与战绩卡</a>
       <a href="#lounge">Vice Lounge 社区交友</a>
       <div class="mobile-nav-tools">
+        <button type="button" class="btn-secondary" id="mobileLangToggleBtn">EN</button>
         <button type="button" class="btn-secondary" id="mobileSpoilerToggle" aria-pressed="false">防剧透：关</button>
         <button type="button" class="btn-secondary" id="mobileSearchBtn">全站搜索</button>
       </div>
@@ -523,6 +525,7 @@
   </aside>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./i18n-en.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

@@ -37,8 +37,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .nav-links a { font-size: var(--text-sm); font-weight: 500; color: rgba(245, 242, 235, 0.84); white-space: nowrap; transition: color 160ms var(--ease-out); }
 .nav-links a:hover { color: var(--text-primary); }
 .header-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
-.search-trigger, .spoiler-toggle { display: inline-flex; align-items: center; gap: 0.35rem; background-color: rgba(16, 24, 36, 0.75); border: 1px solid var(--hairline-strong); border-radius: 2px; padding: 0.4rem 0.68rem; font-size: var(--text-sm); color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out), background-color 160ms var(--ease-out); }
-.search-trigger:hover { border-color: var(--text-primary); color: var(--text-primary); }
+.search-trigger, .spoiler-toggle, .lang-toggle { display: inline-flex; align-items: center; gap: 0.35rem; background-color: rgba(16, 24, 36, 0.75); border: 1px solid var(--hairline-strong); border-radius: 2px; padding: 0.4rem 0.68rem; font-size: var(--text-sm); color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out), background-color 160ms var(--ease-out); }
+.search-trigger:hover, .lang-toggle:hover { border-color: var(--text-primary); color: var(--text-primary); }
+.lang-toggle { color: var(--accent-gold); font-weight: 700; }
 .spoiler-toggle[aria-pressed="true"] { border-color: var(--accent-teal); color: var(--text-primary); background-color: rgba(46, 196, 182, 0.18); }
 .btn-primary { display: inline-flex; align-items: center; justify-content: center; background-color: var(--accent); color: #FFFFFF; border: 0; border-radius: 2px; padding: 0.5rem 1.05rem; font-size: var(--text-sm); font-weight: 700; cursor: pointer; white-space: nowrap; transition: background-color 180ms var(--ease-out), transform 180ms var(--ease-out); }
 .btn-primary:hover { background-color: var(--accent-hover); transform: translateY(-1px); }
