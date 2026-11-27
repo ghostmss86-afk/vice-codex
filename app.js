@@ -422,8 +422,34 @@ function getFilteredVideos() {
   return list;
 }
 
-function getVideoCopy(v) { return (isEn() && EN.videos[v.id]) ? { ...v, ...EN.videos[v.id] } : v; }
+function getVideoCopy(v) {
+  if (!isEn()) return v;
+  if (EN.videos[v.id]) return { ...v, ...EN.videos[v.id] };
+  return { ...v, title: v.enTitle || v.title, note: v.enNote || v.note };
+}
+function syncDynamicVideoCounts() {
+  const n = VIDEOS.length, en = isEn();
+  const setText = (sel, val) => { const el = document.querySelector(sel); if (el) el.textContent = val; };
+  setText('.nav-links a[href="#videos"]', en ? `${n} Videos` : `${n} 视频库`);
+  setText('#mobileNav a[href="#videos"]', en ? `${n} Top Video Guides` : `${n} 条高流量视频`);
+  setText('#videos h2', en ? `${n} Top-Viewed Video Guides (Inline Playback)` : `${n} 条高流量实战视频库（站内直接播放）`);
+  setText('#videoCatTabs button[data-vcat="all"]', en ? `All ${n}` : `全部 ${n} 条`);
+  setText('.footer-inner span:last-child', en ? `${n} verified video guides, 8-pin code vault & 6 Leonida regions` : `已收录 ${n} 条实测高流量视频、中英双语切换、8 组全图门禁密码速查板与 6 大区域定制视觉`);
+  const searchEl = document.getElementById('globalSearchInput');
+  if (searchEl) searchEl.setAttribute('placeholder', en ? `Search ${n} videos, 789987, 031462, CLEAVES, 2314, 085355, Emerus, or legendaries...` : `搜索 ${n} 条视频、789987、031462、CLEAVES、2314、085355、Emerus 或传奇武器...`);
+  if (HERO_SLIDES[0]) {
+    HERO_SLIDES[0].tag = `热度榜首 / ${n} 条视频站内播放`;
+    HERO_SLIDES[0].desc = `收录 ${n} 条实测高播放视频、8 组全图门禁密码速查板、6 大区域扫荡清单与 127 传奇武器点位，主机第二屏常驻工具站。`;
+    HERO_SLIDES[0].ctaText = `浏览 ${n} 条实战视频`;
+  }
+  if (EN && EN.hero && EN.hero['hero-1']) {
+    EN.hero['hero-1'].tag = `Top Heat / ${n} Inline Videos`;
+    EN.hero['hero-1'].desc = `${n} verified top-viewed video guides, 8-pin code vault, 6 region sweep lists, and 127 legendary weapon locations built for your console second screen.`;
+    EN.hero['hero-1'].ctaText = `Browse ${n} Video Guides`;
+  }
+}
 function renderVideos() {
+  syncDynamicVideoCounts();
   const fullList = getFilteredVideos();
   const visible = fullList.slice(0, state.videoLimit);
   const en = isEn();
@@ -437,9 +463,10 @@ function renderVideos() {
   }).join('');
   const wrap = document.getElementById('videoLoadMoreWrap');
   if (visible.length < fullList.length) {
+    const step = fullList.length > 100 ? 24 : 12;
     const moreText = en ? EN.ui.loadMore(visible.length, fullList.length) : `加载更多视频（已显示 ${visible.length} / ${fullList.length}）`;
     wrap.innerHTML = `<button type="button" class="btn-secondary tabular" id="loadMoreVideosBtn">${moreText}</button>`;
-    document.getElementById('loadMoreVideosBtn').addEventListener('click', () => { state.videoLimit += 12; renderVideos(); });
+    document.getElementById('loadMoreVideosBtn').addEventListener('click', () => { state.videoLimit += step; renderVideos(); });
   } else { wrap.innerHTML = ''; }
 }
 document.getElementById('videoCatTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-vcat]'); if (!btn) return; state.videoCat = btn.dataset.vcat; state.videoLimit = 12; document.querySelectorAll('#videoCatTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); renderVideos(); });
@@ -731,4 +758,23 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight') stepHero(1);
 });
 
-renderAll(); restartHeroAuto();
+async function loadCloudVideos() {
+  try {
+    const res = await fetch('./data/videos.json', { cache: 'no-cache' });
+    if (!res.ok) return;
+    const payload = await res.json();
+    const cloud = Array.isArray(payload.videos) ? payload.videos : [];
+    if (!cloud.length) return;
+    const seen = new Set(VIDEOS.map(v => v.id));
+    let added = 0;
+    cloud.forEach(item => {
+      if (item && item.id && !seen.has(item.id)) {
+        seen.add(item.id);
+        VIDEOS.push(item);
+        added += 1;
+      }
+    });
+    if (added > 0) { syncDynamicVideoCounts(); renderHero(); renderVideos(); }
+  } catch (e) {}
+}
+renderAll(); restartHeroAuto(); loadCloudVideos();
