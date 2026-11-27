@@ -258,6 +258,32 @@ h3 { font-size: var(--text-body); font-weight: 700; line-height: 1.4; }
 .dock-btn-post:hover { background-color: var(--accent-hover); }
 .dock-badge { background-color: var(--accent-teal); color: var(--bg-page); font-size: 0.75rem; padding: 0.05rem 0.4rem; border-radius: 2px; }
 
+.my-chapter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; padding: 0.85rem 1.1rem; margin-bottom: 1.75rem; background-color: var(--bg-surface); border: 1px solid var(--hairline); }
+.my-chapter-label { font-size: var(--text-sm); font-weight: 700; color: var(--accent-gold); white-space: nowrap; }
+.my-chapter-hint { font-size: var(--text-table); color: var(--text-muted); margin-left: auto; }
+.chapter-match-tag { display: inline-block; font-size: 0.72rem; font-weight: 700; color: var(--accent-teal); border: 1px solid rgba(46, 196, 182, 0.45); padding: 0.05rem 0.35rem; border-radius: 2px; }
+
+.creator-spotlight { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 0.85rem; padding: 0.95rem 1.15rem; margin-bottom: 1.25rem; background-color: var(--bg-page); border: 1px solid var(--hairline); }
+.creator-spotlight-title { font-size: var(--text-table); font-weight: 700; color: var(--accent-gold); white-space: nowrap; }
+.creator-chip { display: inline-flex; align-items: center; gap: 0.35rem; background: transparent; border: 1px solid var(--hairline-strong); border-radius: 2px; padding: 0.25rem 0.6rem; font-size: var(--text-table); color: var(--text-primary); cursor: pointer; transition: border-color 140ms var(--ease-out), background-color 140ms var(--ease-out); }
+.creator-chip:hover, .creator-chip.active { border-color: var(--accent-gold); background-color: rgba(245, 176, 65, 0.14); }
+.creator-score { color: var(--accent-teal); font-weight: 700; }
+.new-boost-badge { font-size: 0.72rem; font-weight: 700; color: var(--accent); border: 1px solid rgba(255, 90, 54, 0.5); padding: 0.05rem 0.38rem; border-radius: 2px; }
+
+.verify-bar { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; margin-top: 0.5rem; padding-top: 0.45rem; border-top: 1px solid var(--hairline); }
+.verify-btn { display: inline-flex; align-items: center; gap: 0.25rem; background: transparent; border: 1px solid var(--hairline); border-radius: 2px; padding: 0.15rem 0.48rem; font-size: 0.75rem; color: var(--text-muted); cursor: pointer; transition: border-color 140ms var(--ease-out), color 140ms var(--ease-out), background-color 140ms var(--ease-out); }
+.verify-btn:hover { border-color: var(--hairline-strong); color: var(--text-primary); }
+.verify-btn.active-ok { border-color: var(--accent-teal); color: var(--accent-teal); background-color: rgba(46, 196, 182, 0.12); }
+.verify-btn.active-no { border-color: var(--accent); color: var(--accent); background-color: rgba(255, 90, 54, 0.12); }
+
+.vm-related-box { margin-top: 0.55rem; padding-top: 0.65rem; border-top: 1px solid var(--hairline); display: flex; flex-direction: column; gap: 0.45rem; }
+.vm-related-title { font-size: var(--text-table); font-weight: 700; color: var(--accent-gold); }
+.vm-related-list { display: flex; flex-direction: column; gap: 0.35rem; }
+.vm-related-btn { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; width: 100%; background: var(--bg-page); border: 1px solid var(--hairline); border-radius: 2px; padding: 0.42rem 0.6rem; font-size: var(--text-table); text-align: left; color: var(--text-primary); cursor: pointer; transition: border-color 140ms var(--ease-out), background-color 140ms var(--ease-out); }
+.vm-related-btn:hover { border-color: var(--accent); background-color: var(--bg-surface-alt); }
+.vm-related-btn span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vm-related-btn span:last-child { color: var(--accent-teal); flex-shrink: 0; }
+
 .sponsor-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.75rem; border-top: 1px solid var(--hairline); padding-top: 2rem; }
 .sponsor-item { padding: 1.45rem; background-color: var(--bg-surface-alt); border-top: 2px solid var(--accent-gold); display: flex; flex-direction: column; gap: 0.65rem; }
 .sponsor-kicker { font-size: var(--text-sm); color: var(--accent-gold); font-weight: 700; }

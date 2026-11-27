@@ -11,6 +11,29 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What are the Black Eagle Warehouse keypad and safe codes in GTA 6?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The Black Eagle Warehouse office door keypad code in Balsero is 789987, and the office safe code for the legendary Kalinga .50 pistol is 031462 (include the leading 0)." }
+      },
+      {
+        "@type": "Question",
+        "name": "What are the Pelican Valley PC, safe, and boathouse codes in GTA 6?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Flip the outside breaker first, enter CLEAVES on the PC, 0072 on the main safe ($8,000), and 0212 on the dock boathouse keypad for the Crabshack VF5 legendary rifle." }
+      },
+      {
+        "@type": "Question",
+        "name": "What are the President Russo bunker and Port Gellhorn UFO facility codes in GTA 6?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Big Pine Bunker is 085355 (Cold War 556), Sharktooth Island door is 010317 and safe is 2975 (Russo's 1992), Tola Bay PC terminal is President Russo 0612, and the Port Gellhorn UFO research facility code is 2314 for permanent Health, Stamina, and Focus boosts." }
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
   <header class="site-header" id="siteHeader">
@@ -156,6 +179,18 @@
               <option value="newest">按最新收录排序</option>
             </select>
           </div>
+        </div>
+        <div class="my-chapter-bar" id="myChapterBar" aria-label="按当前游玩章节个性化推荐">
+          <span class="my-chapter-label" id="myChapterLabel">🎯 我当前玩到：</span>
+          <div class="segmented" role="tablist" aria-label="选择当前章节" id="myChapterTabs">
+            <button type="button" role="tab" aria-selected="true" data-my-ch="0">全章节推荐</button>
+            <button type="button" role="tab" aria-selected="false" data-my-ch="1">第 1 章 · 群岛开荒</button>
+            <button type="button" role="tab" aria-selected="false" data-my-ch="2">第 2 章 · 格尔霍恩</button>
+            <button type="button" role="tab" aria-selected="false" data-my-ch="3">第 3 章 · 罪恶都市</button>
+            <button type="button" role="tab" aria-selected="false" data-my-ch="4">第 4 章 · 大型金库</button>
+            <button type="button" role="tab" aria-selected="false" data-my-ch="5">第 5 章 · 100% 冲刺</button>
+          </div>
+          <span class="my-chapter-hint" id="myChapterHint">选择后自动联动优先视频、扫荡清单与劫案计算器</span>
         </div>
         <div class="video-grid" id="videoGrid"></div>
         <div class="load-more-wrap" id="videoLoadMoreWrap"></div>
@@ -431,6 +466,7 @@
               <button type="button" class="btn-secondary" id="exportJsonBtn">导出 JSON</button>
             </div>
           </div>
+          <div class="creator-spotlight" id="creatorSpotlight" aria-label="本周精选创作者榜"></div>
           <div id="communityList"></div>
         </div>
 
@@ -501,6 +537,10 @@
         <div id="vmMeta" class="tabular" style="font-size:var(--text-sm); color:var(--accent-gold);"></div>
         <p id="vmNote" style="font-size:var(--text-sm); color:var(--text-muted);"></p>
         <button type="button" id="vmShareBtn" class="text-action-btn" style="align-self:flex-start;">复制本站视频直达链接</button>
+        <div class="vm-related-box" id="vmRelatedWrap">
+          <div class="vm-related-title" id="vmRelatedTitle">看完连推 · 同类高热度视频</div>
+          <div class="vm-related-list" id="vmRelatedList"></div>
+        </div>
       </div>
       <div class="drawer-body" style="padding:1rem 1.4rem;">
         <div id="vmCommentList" style="display:flex; flex-direction:column; gap:0.75rem;"></div>

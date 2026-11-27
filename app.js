@@ -264,7 +264,9 @@ const state = {
   heroSort: 'heat', heroIndex: 0, videoCat: 'all', videoSort: 'heat', videoQuery: '', videoLimit: 12,
   cloudUpdatedAt: '',
   member: loadStore('vc_member_session', null),
-  profile: loadStore('vc_player_profile', { handle: '', gameId: '', platform: 'PS5', avatarColor: '#F5B041' }),
+  profile: loadStore('vc_player_profile', { handle: '', gameId: '', platform: 'PS5', avatarColor: '#F5B041', myChapter: 0 }),
+  myChapter: Number((loadStore('vc_player_profile', {}) || {}).myChapter || 0),
+  creatorFilter: '',
   loungeTab: 'chat',
   replyTarget: null,
   reactions: loadStore('vc_reactions', {}),
@@ -448,9 +450,21 @@ function jumpToLounge(tab, focusChat) {
   if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
   if (focusChat) setTimeout(() => { const inp = document.getElementById('chatTextInput'); if (inp) inp.focus(); }, 360);
 }
+function renderCodeVaultVerify() {
+  const en = isEn();
+  document.querySelectorAll('#codeVaultStrip .code-vault-cell').forEach((cell, idx) => {
+    const key = 'verify:code-' + idx;
+    let bar = cell.querySelector('.verify-bar');
+    if (!bar) { bar = document.createElement('div'); bar.className = 'verify-bar'; cell.appendChild(bar); }
+    const bag = state.reactions[key] || {};
+    const okN = Number(bag.like || 0), noN = Number(bag.fire || 0);
+    const okAct = Boolean(state.myReactions[key + ':like']), noAct = Boolean(state.myReactions[key + ':fire']);
+    bar.innerHTML = `<button type="button" class="verify-btn tabular${okAct ? ' active-ok' : ''}" data-verify-key="${key}" data-verify-type="like">✅ ${en ? 'Works' : '仍有效'}${okN ? ' ' + okN : ''}</button><button type="button" class="verify-btn tabular${noAct ? ' active-no' : ''}" data-verify-key="${key}" data-verify-type="fire">❌ ${en ? 'Patched' : '已失效'}${noN ? ' ' + noN : ''}</button>`;
+  });
+}
 function renderAll() {
   applyStaticI18n(); syncIdentityUI(); updateSocialCloudBadge(); renderHero(); renderVideos(); renderSweep(); renderCalculator();
-  renderRegions(); renderMechanics(); renderArsenal(); renderChapter(); renderChecklist();
+  renderRegions(); renderCodeVaultVerify(); renderMechanics(); renderArsenal(); renderChapter(); renderChecklist();
   renderCommunity(); renderFriends(); renderChat(); updateSocialCountersAndPulse();
   if (state.activeVideoId) openVideoPlayer(state.activeVideoId);
 }
@@ -523,9 +537,16 @@ heroStage.addEventListener('pointerup', (e) => { if (!touchStartX) return; const
 heroStage.addEventListener('mouseenter', () => clearInterval(heroAutoTimer));
 heroStage.addEventListener('mouseleave', restartHeroAuto);
 
+const CHAPTER_PREF_CATS = { 1: ['starter', 'weapons'], 2: ['weapons', 'easter'], 3: ['money', 'vehicles'], 4: ['money', 'vehicles'], 5: ['cheats', 'easter'] };
+const CHAPTER_SWEEP_MAP = { 1: 'leonida-keys', 2: 'port-gellhorn', 3: 'vice-city', 4: 'vice-city', 5: 'mount-kalaga' };
+function isChapterMatchVideo(v) {
+  if (!state.myChapter) return false;
+  const prefs = CHAPTER_PREF_CATS[state.myChapter] || [];
+  return prefs.includes(v.cat);
+}
 function getFilteredVideos() {
   const q = state.videoQuery.trim().toLowerCase();
-  let list = VIDEOS.map(v => ({ ...v, heat: calcVideoHeat(v) }));
+  let list = VIDEOS.map(v => ({ ...v, heat: calcVideoHeat(v), chMatch: isChapterMatchVideo(v) }));
   if (state.videoCat !== 'all') list = list.filter(v => v.cat === state.videoCat);
   if (q) {
     list = list.filter(raw => {
@@ -533,9 +554,9 @@ function getFilteredVideos() {
       return (raw.title + ' ' + v.title + ' ' + raw.channel + ' ' + (raw.note || '') + ' ' + (v.note || '')).toLowerCase().includes(q);
     });
   }
-  if (state.videoSort === 'heat') list.sort((a, b) => b.heat - a.heat);
-  if (state.videoSort === 'views') list.sort((a, b) => b.views - a.views);
-  if (state.videoSort === 'newest') list.sort((a, b) => a.hoursAgo - b.hoursAgo);
+  if (state.videoSort === 'heat') list.sort((a, b) => (b.chMatch - a.chMatch) || (b.heat - a.heat));
+  if (state.videoSort === 'views') list.sort((a, b) => (b.chMatch - a.chMatch) || (b.views - a.views));
+  if (state.videoSort === 'newest') list.sort((a, b) => (b.chMatch - a.chMatch) || (a.hoursAgo - b.hoursAgo));
   return list;
 }
 
@@ -588,7 +609,8 @@ function renderVideos() {
     const playLbl = en ? EN.ui.cinemaPlay : '影院大屏播放';
     const cmtLbl = en ? EN.ui.commentsBtn : '评论';
     const shareLbl = en ? EN.ui.shareBtn : '分享';
-    return `<article class="video-item" id="video-${v.id}"><div class="video-media-slot" id="slot-${v.id}"><button type="button" class="video-cover-btn" data-inline-play="${v.id}" aria-label="${en ? 'Play inline ' : '当前卡片直接播放 '}${escapeHtml(v.title)}"><img src="https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg" alt="${escapeHtml(v.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg';"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar tabular"><span class="video-heat-num">${heatLbl} ${v.heat}</span><span>${v.duration}</span></div></button></div><div class="video-meta-row tabular"><span>${escapeHtml(v.channel)}</span><span>${formatViews(v.views)}</span></div><button type="button" class="video-title-btn" data-play-video="${v.id}">${escapeHtml(v.title)}</button><p style="font-size:var(--text-sm); color:var(--text-muted);">${escapeHtml(v.note)}</p><div class="video-foot-row"><button type="button" class="text-action-btn" style="color:var(--accent); font-weight:700;" data-play-video="${v.id}">${playLbl}</button><div style="display:flex; gap:0.85rem;"><button type="button" class="text-action-btn" data-share-video="${v.id}">${shareLbl}</button><button type="button" class="text-action-btn tabular" data-play-video="${v.id}">${cmtLbl} (${cCount})</button></div></div></article>`;
+    const chTag = raw.chMatch ? `<span class="chapter-match-tag">${en ? 'Ch.' + state.myChapter + ' Pick' : '适配第' + state.myChapter + '章'}</span>` : '';
+    return `<article class="video-item" id="video-${v.id}"><div class="video-media-slot" id="slot-${v.id}"><button type="button" class="video-cover-btn" data-inline-play="${v.id}" aria-label="${en ? 'Play inline ' : '当前卡片直接播放 '}${escapeHtml(v.title)}"><img src="https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg" alt="${escapeHtml(v.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg';"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar tabular"><span class="video-heat-num">${heatLbl} ${v.heat}</span><span>${v.duration}</span></div></button></div><div class="video-meta-row tabular"><span>${escapeHtml(v.channel)} ${chTag}</span><span>${formatViews(v.views)}</span></div><button type="button" class="video-title-btn" data-play-video="${v.id}">${escapeHtml(v.title)}</button><p style="font-size:var(--text-sm); color:var(--text-muted);">${escapeHtml(v.note)}</p><div class="video-foot-row"><button type="button" class="text-action-btn" style="color:var(--accent); font-weight:700;" data-play-video="${v.id}">${playLbl}</button><div style="display:flex; gap:0.85rem;"><button type="button" class="text-action-btn" data-share-video="${v.id}">${shareLbl}</button><button type="button" class="text-action-btn tabular" data-play-video="${v.id}">${cmtLbl} (${cCount})</button></div></div></article>`;
   }).join('');
   const wrap = document.getElementById('videoLoadMoreWrap');
   if (visible.length < fullList.length) {
@@ -649,11 +671,15 @@ function renderRegions() {
   }).join('');
 }
 function renderMechanics() {
-  const filtered = MECHANICS.filter(m => state.mechCat === 'all' || m.cat === state.mechCat);
+  const en = isEn(), filtered = MECHANICS.filter(m => state.mechCat === 'all' || m.cat === state.mechCat);
   document.getElementById('mechanicsGrid').innerHTML = filtered.map(raw => {
-    const m = (isEn() && EN.mechanics[raw.id]) ? { ...raw, ...EN.mechanics[raw.id] } : raw;
+    const m = (en && EN.mechanics[raw.id]) ? { ...raw, ...EN.mechanics[raw.id] } : raw;
     const mask = state.spoilerSafe && m.spoiler;
-    return `<article class="mechanic-entry" id="mech-${m.id}"><div class="entry-meta">${escapeHtml(m.meta)}</div><h3>${escapeHtml(m.title)}</h3><p class="entry-body${mask ? ' spoiler-masked' : ''}" ${mask ? 'data-reveal="true"' : ''}>${escapeHtml(m.body)}</p><div class="entry-tip${mask ? ' spoiler-masked' : ''}" ${mask ? 'data-reveal="true"' : ''}>${escapeHtml(m.tip)}</div></article>`;
+    const vKey = 'verify:mech-' + m.id, bag = state.reactions[vKey] || {};
+    const okN = Number(bag.like || 0), noN = Number(bag.fire || 0);
+    const okAct = Boolean(state.myReactions[vKey + ':like']), noAct = Boolean(state.myReactions[vKey + ':fire']);
+    const verifyHtml = `<div class="verify-bar"><button type="button" class="verify-btn tabular${okAct ? ' active-ok' : ''}" data-verify-key="${vKey}" data-verify-type="like">✅ ${en ? 'Still Works' : '当前版本仍有效'}${okN ? ' ' + okN : ''}</button><button type="button" class="verify-btn tabular${noAct ? ' active-no' : ''}" data-verify-key="${vKey}" data-verify-type="fire">❌ ${en ? 'Patched' : '已失效'}${noN ? ' ' + noN : ''}</button></div>`;
+    return `<article class="mechanic-entry" id="mech-${m.id}"><div class="entry-meta">${escapeHtml(m.meta)}</div><h3>${escapeHtml(m.title)}</h3><p class="entry-body${mask ? ' spoiler-masked' : ''}" ${mask ? 'data-reveal="true"' : ''}>${escapeHtml(m.body)}</p><div class="entry-tip${mask ? ' spoiler-masked' : ''}" ${mask ? 'data-reveal="true"' : ''}>${escapeHtml(m.tip)}</div>${verifyHtml}</article>`;
   }).join('');
 }
 document.getElementById('mechanicsGrid').addEventListener('click', (e) => { const el = e.target.closest('[data-reveal="true"]'); if (el) el.classList.toggle('revealed'); });
@@ -738,9 +764,39 @@ function toggleReaction(targetKey, emoji) {
   if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.saveReaction(targetKey, emoji, state.reactions[targetKey][emoji]);
   renderChat(); renderCommunity();
 }
+function isFreshPost48h(p) {
+  const m = String(p.id || '').match(/^p-(\d{13})$/);
+  const ts = p.createdAt ? Date.parse(p.createdAt) : (m ? Number(m[1]) : 0);
+  return Boolean(ts && (Date.now() - ts) < 48 * 3600 * 1000);
+}
+function calcPostEngagement(p) {
+  const cCount = (state.comments[p.id] || []).length;
+  const rBag = state.reactions['post:' + p.id] || {};
+  const rTotal = Number(rBag.fire || 0) + Number(rBag.like || 0) + Number(rBag.lol || 0);
+  return (Number(p.upvotes || 0) * 3) + (cCount * 5) + rTotal + (isFreshPost48h(p) ? 180 : 0);
+}
+function renderCreatorSpotlight() {
+  const box = document.getElementById('creatorSpotlight'); if (!box) return;
+  const en = isEn(), stats = {};
+  state.posts.forEach(p => {
+    const a = p.author || '@Guest';
+    if (!stats[a]) stats[a] = { author: a, score: 0, count: 0, isMember: Boolean(p.isMember) };
+    stats[a].score += calcPostEngagement(p);
+    stats[a].count += 1;
+    if (p.isMember) stats[a].isMember = true;
+  });
+  const top = Object.values(stats).sort((a, b) => b.score - a.score).slice(0, 5);
+  const title = en ? '🏆 Top Creators This Week:' : '🏆 本周精选创作者：';
+  const clearBtn = state.creatorFilter ? `<button type="button" class="text-action-btn" data-filter-creator="">${en ? 'Show All' : '查看全部'}</button>` : '';
+  box.innerHTML = `<span class="creator-spotlight-title">${title}</span>` + top.map((c, idx) => `<button type="button" class="creator-chip tabular${state.creatorFilter === c.author ? ' active' : ''}" data-filter-creator="${escapeHtml(c.author)}"><span>#${idx + 1} ${escapeHtml(c.author)}${c.isMember ? ' ✓' : ''}</span><span class="creator-score">${c.score}</span></button>`).join('') + clearBtn;
+}
 function getPostCopy(p) { return (isEn() && EN.defaultPosts[p.id]) ? { ...p, ...EN.defaultPosts[p.id] } : p; }
 function renderCommunity() {
-  const en = isEn(), list = document.getElementById('communityList'), filtered = state.posts.filter(p => state.postCat === 'all' || p.category === state.postCat).sort((a, b) => b.upvotes - a.upvotes);
+  renderCreatorSpotlight();
+  const en = isEn(), list = document.getElementById('communityList');
+  const filtered = state.posts
+    .filter(p => (state.postCat === 'all' || p.category === state.postCat) && (!state.creatorFilter || p.author === state.creatorFilter))
+    .sort((a, b) => calcPostEngagement(b) - calcPostEngagement(a));
   if (!filtered.length) { list.innerHTML = `<p class="empty-state">${en ? EN.ui.emptyPosts : '当前分类还没有投稿，点击“上传攻略 / 站内视频”抢先分享。'}</p>`; return; }
   const inlineHint = en ? EN.ui.playInlineLabel : '站内直接播放';
   const cinemaLbl = en ? EN.ui.cinemaPlay : '影院大屏播放';
@@ -748,11 +804,12 @@ function renderCommunity() {
   list.innerHTML = filtered.map(raw => {
     const p = getPostCopy(raw), catLabel = en ? (EN.ui.postCategories[p.category] || p.category) : p.category;
     const voted = Boolean(state.upvoted[p.id]), ytId = extractYoutubeId(p.videoUrl), cCount = (state.comments[p.id] || []).length;
+    const freshTag = isFreshPost48h(p) ? `<span class="new-boost-badge">${en ? '48h Boost' : '新投稿扶持'}</span>` : '';
     const memberTag = p.isMember ? `<span class="member-badge">✓</span>` : '';
     const platTag = p.platform ? `<span class="plat-tag">${escapeHtml(p.platform)}</span>` : '';
     const mediaHtml = ytId ? `<div class="post-video-slot" id="post-slot-${p.id}"><button type="button" class="video-cover-btn" data-inline-play-post="${p.id}" data-yt-id="${ytId}" aria-label="${escapeHtml(inlineHint)} ${escapeHtml(p.title)}"><img src="https://i.ytimg.com/vi/${ytId}/hqdefault.jpg" alt="${escapeHtml(p.title)}" loading="lazy" referrerpolicy="no-referrer"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar"><span class="video-heat-num">${escapeHtml(inlineHint)}</span><span>16:9</span></div></button></div>` : '';
     const cinemaBtn = ytId ? `<button type="button" class="text-action-btn" style="color:var(--accent); font-weight:700;" data-play-post-modal="${p.id}" data-yt-id="${ytId}">${escapeHtml(cinemaLbl)}</button>` : '';
-    return `<article class="post-row" id="post-${p.id}"><button type="button" class="upvote-btn tabular" data-upvote="${p.id}" aria-pressed="${voted}"><span>&#9650;</span><span>${p.upvotes}</span></button><div><div class="post-meta"><span>${escapeHtml(catLabel)}</span><span>/</span><strong style="color:var(--accent-gold);">${escapeHtml(p.author)}</strong>${memberTag}${platTag}</div><h3>${escapeHtml(p.title)}</h3><p class="post-body">${escapeHtml(p.body)}</p>${mediaHtml}<div class="post-toolbar">${renderReactionButtons('post:' + p.id)}${cinemaBtn}<button type="button" class="text-action-btn tabular" data-open-comments="${p.id}" data-comment-title="${escapeHtml(p.title)}">${en ? EN.ui.expandComments(cCount) : `展开评论 (${cCount})`}</button><button type="button" class="text-action-btn" data-share-post="${p.id}">${escapeHtml(shareLbl)}</button></div></div></article>`;
+    return `<article class="post-row" id="post-${p.id}"><button type="button" class="upvote-btn tabular" data-upvote="${p.id}" aria-pressed="${voted}"><span>&#9650;</span><span>${p.upvotes}</span></button><div><div class="post-meta"><span>${escapeHtml(catLabel)}</span><span>/</span><strong style="color:var(--accent-gold);">${escapeHtml(p.author)}</strong>${memberTag}${platTag}${freshTag}</div><h3>${escapeHtml(p.title)}</h3><p class="post-body">${escapeHtml(p.body)}</p>${mediaHtml}<div class="post-toolbar">${renderReactionButtons('post:' + p.id)}${cinemaBtn}<button type="button" class="text-action-btn tabular" data-open-comments="${p.id}" data-comment-title="${escapeHtml(p.title)}">${en ? EN.ui.expandComments(cCount) : `展开评论 (${cCount})`}</button><button type="button" class="text-action-btn" data-share-post="${p.id}">${escapeHtml(shareLbl)}</button></div></div></article>`;
   }).join('');
 }
 document.getElementById('communityFilterTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-post-cat]'); if (!btn) return; state.postCat = btn.dataset.postCat; document.querySelectorAll('#communityFilterTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); renderCommunity(); });
@@ -968,6 +1025,16 @@ function openPostVideoModal(postId, ytId) {
   document.getElementById('vmNote').textContent = p.body;
   renderVideoModalComments();
 }
+function renderModalRelatedVideos(currentVid, cat) {
+  const box = document.getElementById('vmRelatedList'); if (!box) return;
+  const list = VIDEOS.filter(x => x.id !== currentVid && (!cat || x.cat === cat))
+    .map(x => ({ ...x, heat: calcVideoHeat(x) }))
+    .sort((a, b) => b.heat - a.heat).slice(0, 3);
+  box.innerHTML = list.map(raw => {
+    const rv = getVideoCopy(raw);
+    return `<button type="button" class="vm-related-btn" data-play-video="${rv.id}"><span>&#9654; ${escapeHtml(rv.title)}</span><span class="tabular">${rv.duration}</span></button>`;
+  }).join('');
+}
 function openVideoPlayer(vid) {
   const raw = VIDEOS.find(x => x.id === vid); if (!raw) return;
   const v = getVideoCopy(raw);
@@ -976,10 +1043,39 @@ function openVideoPlayer(vid) {
   document.getElementById('vmTitle').textContent = v.title;
   document.getElementById('vmMeta').textContent = isEn() ? EN.ui.vmMeta(v.channel, formatViews(v.views), v.duration) : `${v.channel} / ${formatViews(v.views)} / 时长 ${v.duration}`;
   document.getElementById('vmNote').textContent = v.note;
+  renderModalRelatedVideos(vid, raw.cat);
   renderVideoModalComments();
+}
+const myChapterTabsEl = document.getElementById('myChapterTabs');
+if (myChapterTabsEl) {
+  if (state.myChapter) {
+    myChapterTabsEl.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(Number(b.dataset.myCh) === state.myChapter)));
+  }
+  myChapterTabsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-my-ch]'); if (!btn) return;
+    state.myChapter = Number(btn.dataset.myCh); state.profile.myChapter = state.myChapter; saveStore('vc_player_profile', state.profile);
+    myChapterTabsEl.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b === btn)));
+    if (state.myChapter && CHAPTER_SWEEP_MAP[state.myChapter]) {
+      state.activeSweepRegion = CHAPTER_SWEEP_MAP[state.myChapter];
+      document.querySelectorAll('#sweepRegionTabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.sweep === state.activeSweepRegion)));
+      const calcCh = document.getElementById('calcChapter'); if (calcCh) calcCh.value = String(state.myChapter);
+      renderSweep(); renderCalculator();
+    }
+    state.videoLimit = 12; renderVideos();
+    showToast(state.myChapter ? (isEn() ? `Personalized for Chapter ${state.myChapter}!` : `已为你切换至第 ${state.myChapter} 章专属推荐`) : (isEn() ? 'Showing all-chapter recommendations' : '已切换为全章节推荐'));
+  });
 }
 
 document.body.addEventListener('click', (e) => {
+  const creatorBtn = e.target.closest('[data-filter-creator]');
+  if (creatorBtn) { state.creatorFilter = creatorBtn.dataset.filterCreator; renderCommunity(); return; }
+  const verifyBtn = e.target.closest('[data-verify-key]');
+  if (verifyBtn) {
+    toggleReaction(verifyBtn.dataset.verifyKey, verifyBtn.dataset.verifyType);
+    renderCodeVaultVerify(); renderMechanics();
+    showToast(verifyBtn.dataset.verifyType === 'like' ? (isEn() ? 'Marked as Working in current patch!' : '已标记：当前版本实测有效') : (isEn() ? 'Flagged as Patched / Outdated' : '已反馈：当前版本可能已失效'));
+    return;
+  }
   const reactBtn = e.target.closest('[data-react-key]'); if (reactBtn) { toggleReaction(reactBtn.dataset.reactKey, reactBtn.dataset.reactEmoji); return; }
   const replyBtn = e.target.closest('[data-reply-author]'); if (replyBtn) { setReplyTarget(replyBtn.dataset.replyAuthor, replyBtn.dataset.replyText); return; }
   const pinBtn = e.target.closest('[data-copy-pin]'); if (pinBtn) { copyText(pinBtn.dataset.copyPin, isEn() ? EN.ui.toasts.pinCopied(pinBtn.dataset.copyPin) : '已复制密码：' + pinBtn.dataset.copyPin); return; }
