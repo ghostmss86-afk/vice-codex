@@ -1,5 +1,5 @@
 const HERO_SLIDES = [
-  { id: 'hero-1', order: 1, views24h: 3953074, engagement: 0.96, freshness: 1.0, sponsored: false, tag: '热度榜首 / 50 条视频站内播放', title: '罪恶都市黄昏海滨全玩法百科', desc: '收录 50 条实测高播放视频、6 大区域扫荡清单与 127 传奇武器点位，主机第二屏常驻工具站。', ctaText: '浏览 50 条实战视频', ctaHref: '#videos', image: 'assets/vice-city.jpg', fallback: 'https://vice6map.com/assets/screenshots/vice-city-ocean-drive.jpg', shortTitle: '罪恶都市海滨' },
+  { id: 'hero-1', order: 1, views24h: 3953074, engagement: 0.96, freshness: 1.0, sponsored: false, tag: '热度榜首 / 55 条视频站内播放', title: '罪恶都市黄昏海滨全玩法百科', desc: '收录 55 条实测高播放视频、8 组全图门禁密码速查板、6 大区域扫荡清单与 127 传奇武器点位，主机第二屏常驻工具站。', ctaText: '浏览 55 条实战视频', ctaHref: '#videos', image: 'assets/vice-city.jpg', fallback: 'https://vice6map.com/assets/screenshots/vice-city-ocean-drive.jpg', shortTitle: '罪恶都市海滨' },
   { id: 'hero-2', order: 2, views24h: 1580000, engagement: 0.94, freshness: 0.98, sponsored: false, tag: 'Port Gellhorn 扫荡专题', title: '8 把传奇武器与 UFO 2314 永久加成', desc: '树顶沙发左轮、4 组固定地堡密码与星光旅馆 UFO 营救，一键进入区域扫荡模式逐项勾选。', ctaText: '打开区域扫荡工作台', ctaHref: '#sweep', image: 'assets/port-gellhorn.jpg', fallback: 'https://i.ytimg.com/vi/0NIez05L0YE/hqdefault.jpg', shortTitle: 'Port Gellhorn 扫荡' },
   { id: 'hero-3', order: 3, views24h: 1227918, engagement: 0.93, freshness: 0.96, sponsored: false, tag: 'Leonida Keys 开荒防漏', title: '第一章离岛前绝不能漏的隐藏收集', desc: 'Tourist Trap 任务会清空 Jason 旧宅与现金，先去卧室地板藏钱并领完门口信箱赏金。', ctaText: '查看章节避坑路线', ctaHref: '#chapters', image: 'assets/leonida-keys.jpg', fallback: 'https://i.ytimg.com/vi/FvbVccBoVds/hqdefault.jpg', shortTitle: '群岛开荒防漏' },
   { id: 'hero-4', order: 4, views24h: 1040000, engagement: 0.91, freshness: 0.93, sponsored: false, tag: 'Grassrivers 湿地探索', title: '臭鼬猿、巨型变异蟹与水下秘宝', desc: '深入草河沼泽追踪夜间怪谈生物与 33 处水下探索，出发前记得查清油量与后备箱配枪。', ctaText: '查看隐藏彩蛋解析', ctaHref: '#mechanics', image: 'assets/grassrivers.jpg', fallback: 'https://i.ytimg.com/vi/X08cBTfKpP4/hqdefault.jpg', shortTitle: '草河湿地怪谈' },
@@ -409,7 +409,7 @@ document.getElementById('downloadPosterBtn').addEventListener('click', () => {
   ctx.fillStyle = '#9AA7B8'; ctx.font = '500 22px "Noto Sans SC", sans-serif';
   if (doneItems.length) { ctx.fillText('已攻克里程碑：', 72, 330); ctx.fillStyle = '#F5F2EB'; doneItems.forEach((item, idx) => ctx.fillText(`✓ ${item.title}`, 72, 372 + idx * 36)); }
   else { ctx.fillText('刚刚踏入莱奥尼达群岛，即将开启 100% 漫漫长路冲刺！', 72, 345); }
-  ctx.fillStyle = 'rgba(245, 242, 235, 0.55)'; ctx.font = '500 20px "Space Grotesk", "Noto Sans SC", sans-serif'; ctx.fillText('罪城全书 VICE CODEX v7.0  |  GTA 6 开源攻略与玩家社区', 72, 560);
+  ctx.fillStyle = 'rgba(245, 242, 235, 0.55)'; ctx.font = '500 20px "Space Grotesk", "Noto Sans SC", sans-serif'; ctx.fillText('罪城全书 VICE CODEX v8.0  |  GTA 6 开源攻略与玩家社区', 72, 560);
   const link = document.createElement('a'); link.download = `vice-codex-100-progress-${Math.round(weight)}pct.png`; link.href = canvas.toDataURL('image/png'); link.click();
   showToast('已下载 100% 战绩海报 PNG');
 });
@@ -537,8 +537,8 @@ document.getElementById('friendForm').addEventListener('submit', (e) => {
   e.target.reset(); closeAllOverlays(); renderFriends(); showToast('已保存名片');
 });
 
-document.getElementById('exportJsonBtn').addEventListener('click', () => copyText(JSON.stringify({ project: 'VICE CODEX v7.0 (MIT)', exportedAt: new Date().toISOString(), videosCount: VIDEOS.length, posts: state.posts, friends: state.friends }, null, 2), '已复制社区数据 JSON'));
-document.getElementById('sponsorActionBtn').addEventListener('click', () => copyText('罪城全书 VICE CODEX v7.0 商业合作：支持首页焦点轮播原生赞助位与页底主机外设/加速器导购席位，零弹窗广告。', '已复制商业合作说明'));
+document.getElementById('exportJsonBtn').addEventListener('click', () => copyText(JSON.stringify({ project: 'VICE CODEX v8.0 (MIT)', exportedAt: new Date().toISOString(), videosCount: VIDEOS.length, posts: state.posts, friends: state.friends }, null, 2), '已复制社区数据 JSON'));
+document.getElementById('sponsorActionBtn').addEventListener('click', () => copyText('罪城全书 VICE CODEX v8.0 商业合作：支持首页焦点轮播原生赞助位与页底主机外设/加速器导购席位，零弹窗广告。', '已复制商业合作说明'));
 
 const globalSearchInput = document.getElementById('globalSearchInput'), searchResultsEl = document.getElementById('searchResults');
 function openSearch() { openOverlay(searchModal); renderGlobalSearch(''); setTimeout(() => globalSearchInput.focus(), 40); }
