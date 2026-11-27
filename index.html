@@ -24,7 +24,7 @@
           <li><a href="#mechanics">机制密码</a></li>
           <li><a href="#arsenal">超跑武器</a></li>
           <li><a href="#checklist">100% 战绩卡</a></li>
-          <li><a href="#lounge">玩家社区</a></li>
+          <li><a href="#lounge" class="nav-link-social">社交聊天</a></li>
         </ul>
       </nav>
       <div class="header-actions">
@@ -36,14 +36,15 @@
       </div>
     </div>
     <nav class="mobile-nav" id="mobileNav" aria-label="移动端导航">
-      <a href="#videos">70 条高流量视频</a>
+      <a href="#videos">70 条高流量视频（站内播放）</a>
       <a href="#sweep">区域扫荡与销赃计算器</a>
       <a href="#regions">莱奥尼达六大区域</a>
-      <a href="#mechanics">全玩法机制与密码</a>
+      <a href="#mechanics">全玩法机制与 8 组密码</a>
       <a href="#arsenal">超跑与传奇武器</a>
       <a href="#chapters">五大章节赚钱路线</a>
       <a href="#checklist">100% 奖杯与战绩卡</a>
-      <a href="#lounge">Vice Lounge 社区交友</a>
+      <a href="#lounge" class="nav-link-social">社交聊天与交友大厅</a>
+      <a href="#live-comments">全网实时评论区</a>
       <div class="mobile-nav-tools">
         <button type="button" class="btn-secondary" id="mobileLangToggleBtn">EN</button>
         <button type="button" class="btn-secondary" id="mobileSpoilerToggle" aria-pressed="false">防剧透：关</button>
@@ -73,6 +74,41 @@
         </div>
       </div>
     </section>
+
+    <nav class="wayfinding-bar" id="wayfindingBar" aria-label="全站功能快速导览">
+      <div class="container wayfinding-grid">
+        <a href="#videos" class="wayfinding-item">
+          <span class="wayfinding-num tabular">01</span>
+          <span class="wayfinding-title">站内视频库</span>
+          <span class="wayfinding-desc">原位播放支持全屏</span>
+        </a>
+        <a href="#sweep" class="wayfinding-item">
+          <span class="wayfinding-num tabular">02</span>
+          <span class="wayfinding-title">第二屏扫荡</span>
+          <span class="wayfinding-desc">区域清单 + 劫案计算</span>
+        </a>
+        <a href="#mechanics" class="wayfinding-item">
+          <span class="wayfinding-num tabular">03</span>
+          <span class="wayfinding-title">8 组门禁密码</span>
+          <span class="wayfinding-desc">一键复制 + 机制速查</span>
+        </a>
+        <a href="#arsenal" class="wayfinding-item">
+          <span class="wayfinding-num tabular">04</span>
+          <span class="wayfinding-title">超跑与传奇枪</span>
+          <span class="wayfinding-desc">极速榜 + 127 武器</span>
+        </a>
+        <a href="#checklist" class="wayfinding-item">
+          <span class="wayfinding-num tabular">05</span>
+          <span class="wayfinding-title">100% 战绩卡</span>
+          <span class="wayfinding-desc">勾选导出 PNG 海报</span>
+        </a>
+        <a href="#lounge" class="wayfinding-item wayfinding-highlight">
+          <span class="wayfinding-num tabular">06</span>
+          <span class="wayfinding-title">社交聊天大厅</span>
+          <span class="wayfinding-desc">发攻略 / 找车队 / 聊天</span>
+        </a>
+      </div>
+    </nav>
 
     <section class="section" id="videos">
       <div class="container">
@@ -321,8 +357,9 @@
       <div class="container">
         <div class="section-head">
           <div>
-            <h2>Vice Lounge 玩家共创与交友大厅</h2>
-            <p class="section-lead">支持投稿自动抓取 YouTube 封面、一键导出 GitHub PR、主机玩家交友名片与 4 频道聊天室，下方已接入 Giscus 云端永久同步真评论区。</p>
+            <h2>Vice Lounge 玩家社交与聊天大厅</h2>
+            <p class="section-lead">无需注册登录，填个昵称即可发实战攻略、站内直接看投稿视频、贴主机名片找车队，或在右侧 4 个频道实时聊天，全网玩家互通可见。</p>
+            <div class="cloud-status-line tabular" id="socialCloudBadge"></div>
           </div>
           <div class="controls-row">
             <div class="segmented" role="tablist" aria-label="筛选社区投稿分类" id="communityFilterTabs">
@@ -332,6 +369,30 @@
               <button type="button" role="tab" aria-selected="false" data-post-cat="开荒避坑">开荒避坑</button>
             </div>
             <button type="button" class="btn-secondary" id="exportJsonBtn">导出社区 JSON</button>
+          </div>
+        </div>
+
+        <div class="social-guide-strip" id="socialGuideStrip" aria-label="社交大厅三步玩法指引">
+          <div class="social-guide-cell">
+            <div class="social-guide-kicker tabular">玩法 01 / 攻略投稿</div>
+            <h3>发图文或站内视频攻略</h3>
+            <p>附上视频链接自动生成站内播放器，所有视频均在卡片内直接播放不跳转，支持点赞置顶与展开评论。</p>
+            <button type="button" class="text-action-btn" id="quickPublishBtn">立即发布一条攻略 &#8594;</button>
+          </div>
+          <div class="social-guide-cell">
+            <div class="social-guide-kicker tabular">玩法 02 / 车队交友</div>
+            <h3>贴主机名片找联机队友</h3>
+            <p>登记你的 PSN、Xbox 或 PC 预备队 ID 与常玩时段，其他玩家可一键复制你的 ID 加好友组队。</p>
+            <button type="button" class="text-action-btn" id="quickFriendBtn">登记我的游戏名片 &#8594;</button>
+          </div>
+          <div class="social-guide-cell">
+            <div class="social-guide-kicker tabular">玩法 03 / 实时聊天</div>
+            <h3>免注册 4 频道云端聊天</h3>
+            <p>输入昵称后自动记住，可在开荒互助、彩蛋破译、晒车拍照、车队预招四个频道即时发言，或直达全网评论区。</p>
+            <div class="social-guide-actions">
+              <button type="button" class="text-action-btn" id="quickChatBtn">去聊天室发一句 &#8594;</button>
+              <a href="#live-comments" class="text-action-btn" id="quickCommentsLink">全网评论区 &#8594;</a>
+            </div>
           </div>
         </div>
 
@@ -454,7 +515,7 @@
         </div>
         <div id="vmMeta" class="tabular" style="font-size:var(--text-sm); color:var(--accent-gold);"></div>
         <p id="vmNote" style="font-size:var(--text-sm); color:var(--text-muted);"></p>
-        <a id="vmExtLink" href="#" target="_blank" rel="noopener noreferrer" class="text-action-btn">在 YouTube 新窗口打开原视频</a>
+        <button type="button" id="vmShareBtn" class="text-action-btn" style="align-self:flex-start;">复制本站视频直达链接</button>
       </div>
       <div class="drawer-body" style="padding:1rem 1.4rem;">
         <div id="vmCommentList" style="display:flex; flex-direction:column; gap:0.75rem;"></div>

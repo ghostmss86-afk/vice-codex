@@ -356,8 +356,15 @@ function applyStaticI18n() {
     giscusFrame.contentWindow.postMessage({ giscus: { setConfig: { lang: en ? 'en' : 'zh-CN' } } }, 'https://giscus.app');
   }
 }
+function updateSocialCloudBadge() {
+  const el = document.getElementById('socialCloudBadge'); if (!el) return;
+  const en = isEn(), live = Boolean(window.VICE_CLOUD && window.VICE_CLOUD.enabled);
+  el.textContent = live
+    ? (en ? EN.ui.socialCloudLive : '云端实时互通已连接 · 免注册发帖、聊天与登记名片，全网玩家实时可见')
+    : (en ? EN.ui.socialCloudLocal : '当前为本地保存模式 · 你的昵称与发帖将自动保留在浏览器');
+}
 function renderAll() {
-  applyStaticI18n(); renderHero(); renderVideos(); renderSweep(); renderCalculator();
+  applyStaticI18n(); updateSocialCloudBadge(); renderHero(); renderVideos(); renderSweep(); renderCalculator();
   renderRegions(); renderMechanics(); renderArsenal(); renderChapter(); renderChecklist();
   renderCommunity(); renderFriends(); renderChat();
   if (state.activeVideoId) openVideoPlayer(state.activeVideoId);
@@ -626,10 +633,14 @@ function getPostCopy(p) { return (isEn() && EN.defaultPosts[p.id]) ? { ...p, ...
 function renderCommunity() {
   const en = isEn(), list = document.getElementById('communityList'), filtered = state.posts.filter(p => state.postCat === 'all' || p.category === state.postCat).sort((a, b) => b.upvotes - a.upvotes);
   if (!filtered.length) { list.innerHTML = `<p class="empty-state">${en ? EN.ui.emptyPosts : '当前分类还没有投稿，点击右上角“发布攻略”抢先分享。'}</p>`; return; }
+  const inlineHint = en ? EN.ui.playInlineLabel : '站内直接播放';
+  const cinemaLbl = en ? EN.ui.cinemaPlay : '影院大屏播放';
   list.innerHTML = filtered.map(raw => {
     const p = getPostCopy(raw), catLabel = en ? (EN.ui.postCategories[p.category] || p.category) : p.category;
     const voted = Boolean(state.upvoted[p.id]), ytId = extractYoutubeId(p.videoUrl), cCount = (state.comments[p.id] || []).length;
-    return `<article class="post-row" id="post-${p.id}"><button type="button" class="upvote-btn tabular" data-upvote="${p.id}" aria-pressed="${voted}"><span>&#9650;</span><span>${p.upvotes}</span></button><div><div class="post-meta">${escapeHtml(catLabel)} / ${escapeHtml(p.author)}</div><h3>${escapeHtml(p.title)}</h3><p class="post-body">${escapeHtml(p.body)}</p>${ytId ? `<a href="${escapeHtml(p.videoUrl)}" target="_blank" rel="noopener noreferrer"><img class="post-thumb" src="https://i.ytimg.com/vi/${ytId}/hqdefault.jpg" alt="${escapeHtml(p.title)}" loading="lazy" referrerpolicy="no-referrer"></a>` : ''}<div class="post-toolbar"><button type="button" class="text-action-btn tabular" data-open-comments="${p.id}" data-comment-title="${escapeHtml(p.title)}">${en ? EN.ui.expandComments(cCount) : `展开评论 (${cCount})`}</button><button type="button" class="text-action-btn" data-copy-md="${p.id}">${en ? EN.ui.copyPrBtn : '复制 GitHub PR 模板'}</button></div></div></article>`;
+    const mediaHtml = ytId ? `<div class="post-video-slot" id="post-slot-${p.id}"><button type="button" class="video-cover-btn" data-inline-play-post="${p.id}" data-yt-id="${ytId}" aria-label="${escapeHtml(inlineHint)} ${escapeHtml(p.title)}"><img src="https://i.ytimg.com/vi/${ytId}/hqdefault.jpg" alt="${escapeHtml(p.title)}" loading="lazy" referrerpolicy="no-referrer"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar"><span class="video-heat-num">${escapeHtml(inlineHint)}</span><span>16:9</span></div></button></div>` : '';
+    const cinemaBtn = ytId ? `<button type="button" class="text-action-btn" style="color:var(--accent); font-weight:700;" data-play-post-modal="${p.id}" data-yt-id="${ytId}">${escapeHtml(cinemaLbl)}</button>` : '';
+    return `<article class="post-row" id="post-${p.id}"><button type="button" class="upvote-btn tabular" data-upvote="${p.id}" aria-pressed="${voted}"><span>&#9650;</span><span>${p.upvotes}</span></button><div><div class="post-meta">${escapeHtml(catLabel)} / ${escapeHtml(p.author)}</div><h3>${escapeHtml(p.title)}</h3><p class="post-body">${escapeHtml(p.body)}</p>${mediaHtml}<div class="post-toolbar">${cinemaBtn}<button type="button" class="text-action-btn tabular" data-open-comments="${p.id}" data-comment-title="${escapeHtml(p.title)}">${en ? EN.ui.expandComments(cCount) : `展开评论 (${cCount})`}</button><button type="button" class="text-action-btn" data-copy-md="${p.id}">${en ? EN.ui.copyPrBtn : '复制 GitHub PR 模板'}</button></div></div></article>`;
   }).join('');
 }
 document.getElementById('communityFilterTabs').addEventListener('click', (e) => { const btn = e.target.closest('button[data-post-cat]'); if (!btn) return; state.postCat = btn.dataset.postCat; document.querySelectorAll('#communityFilterTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn))); renderCommunity(); });
@@ -683,6 +694,21 @@ document.querySelectorAll('[data-close-drawer]').forEach(btn => btn.addEventList
 document.getElementById('closeVideoModalBtn').addEventListener('click', closeAllOverlays);
 document.getElementById('openPublishBtn').addEventListener('click', () => openOverlay(publishDrawer));
 document.getElementById('openFriendBtn').addEventListener('click', () => openOverlay(friendDrawer));
+const quickPublishBtn = document.getElementById('quickPublishBtn');
+if (quickPublishBtn) quickPublishBtn.addEventListener('click', () => openOverlay(publishDrawer));
+const quickFriendBtn = document.getElementById('quickFriendBtn');
+if (quickFriendBtn) quickFriendBtn.addEventListener('click', () => openOverlay(friendDrawer));
+const quickChatBtn = document.getElementById('quickChatBtn');
+if (quickChatBtn) quickChatBtn.addEventListener('click', () => {
+  const chatInput = document.getElementById('chatTextInput');
+  if (chatInput) { chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => chatInput.focus(), 320); }
+});
+const vmShareBtn = document.getElementById('vmShareBtn');
+if (vmShareBtn) vmShareBtn.addEventListener('click', () => {
+  if (!state.activeVideoId) return;
+  const url = location.origin + location.pathname + '#video-' + state.activeVideoId;
+  copyText(url, isEn() ? EN.ui.linkCopied : '已复制该条攻略视频直达链接');
+});
 
 function getLocalizedComments(key) {
   const base = state.comments[key] || [];
@@ -695,21 +721,39 @@ function renderVideoModalComments() {
   list.innerHTML = items.length ? items.map(c => `<div class="chat-msg"><div class="chat-msg-head"><span class="chat-msg-author">${escapeHtml(c.author)}</span><span class="tabular">${escapeHtml(c.time)}</span></div><p style="font-size:var(--text-sm); color:var(--text-primary);">${escapeHtml(c.text)}</p></div>`).join('') : `<p class="empty-state" style="padding:0.75rem 0;">${isEn() ? EN.ui.emptyVideoComments : '暂无评论，写下你的第一条实测反馈。'}</p>`;
 }
 function playInlineVideo(vid){const slot=document.getElementById("slot-"+vid),raw=VIDEOS.find(x=>x.id===vid);if(!slot||!raw)return;const v=getVideoCopy(raw);slot.innerHTML=`<iframe class="video-inline-iframe" src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&playsinline=1" title="${escapeHtml(v.title)}" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;}
+function playInlinePostVideo(postId, ytId) {
+  const slot = document.getElementById('post-slot-' + postId);
+  const raw = state.posts.find(p => p.id === postId); if (!slot || !ytId) return;
+  const p = raw ? getPostCopy(raw) : { title: 'Community Video' };
+  slot.innerHTML = `<iframe class="video-inline-iframe" src="https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&playsinline=1" title="${escapeHtml(p.title)}" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+}
+function openPostVideoModal(postId, ytId) {
+  if (VIDEOS.some(v => v.id === ytId)) { openVideoPlayer(ytId); return; }
+  const raw = state.posts.find(p => p.id === postId); if (!raw || !ytId) return;
+  const p = getPostCopy(raw);
+  openOverlay(videoModal); state.activeVideoId = ytId;
+  document.getElementById('videoIframeWrap').innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&playsinline=1" title="${escapeHtml(p.title)}" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+  document.getElementById('vmTitle').textContent = p.title;
+  document.getElementById('vmMeta').textContent = `${p.author} / ${isEn() ? (EN.ui.postCategories[p.category] || p.category) : p.category}`;
+  document.getElementById('vmNote').textContent = p.body;
+  renderVideoModalComments();
+}
 function openVideoPlayer(vid) {
   const raw = VIDEOS.find(x => x.id === vid); if (!raw) return;
   const v = getVideoCopy(raw);
   openOverlay(videoModal); state.activeVideoId = vid;
-  document.getElementById('videoIframeWrap').innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0" title="${escapeHtml(v.title)}" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+  document.getElementById('videoIframeWrap').innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&playsinline=1" title="${escapeHtml(v.title)}" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
   document.getElementById('vmTitle').textContent = v.title;
   document.getElementById('vmMeta').textContent = isEn() ? EN.ui.vmMeta(v.channel, formatViews(v.views), v.duration) : `${v.channel} / ${formatViews(v.views)} / 时长 ${v.duration}`;
   document.getElementById('vmNote').textContent = v.note;
-  document.getElementById('vmExtLink').href = `https://www.youtube.com/watch?v=${vid}`;
   renderVideoModalComments();
 }
 
 document.body.addEventListener('click', (e) => {
   const pinBtn = e.target.closest('[data-copy-pin]'); if (pinBtn) { copyText(pinBtn.dataset.copyPin, isEn() ? EN.ui.toasts.pinCopied(pinBtn.dataset.copyPin) : '已复制密码：' + pinBtn.dataset.copyPin); return; }
   const shareBtn = e.target.closest('[data-share-video]'); if (shareBtn) { const url = location.origin + location.pathname + '#video-' + shareBtn.dataset.shareVideo; copyText(url, isEn() ? EN.ui.linkCopied : '已复制该条攻略视频直达链接'); return; }
+  const inlinePostBtn = e.target.closest('[data-inline-play-post]'); if (inlinePostBtn) { playInlinePostVideo(inlinePostBtn.dataset.inlinePlayPost, inlinePostBtn.dataset.ytId); return; }
+  const modalPostBtn = e.target.closest('[data-play-post-modal]'); if (modalPostBtn) { openPostVideoModal(modalPostBtn.dataset.playPostModal, modalPostBtn.dataset.ytId); return; }
   const inlineBtn = e.target.closest('[data-inline-play]'); if (inlineBtn) { playInlineVideo(inlineBtn.dataset.inlinePlay); return; }
   const playBtn = e.target.closest('[data-play-video]');
   if (playBtn) { openVideoPlayer(playBtn.dataset.playVideo); return; }
