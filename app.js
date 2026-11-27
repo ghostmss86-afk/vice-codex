@@ -250,8 +250,8 @@ const EN = window.VICE_I18N_EN || null;
 function detectDefaultLang() {
   const saved = loadStore('vc_lang', null);
   if (saved === 'zh' || saved === 'en') return saved;
-  const langs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || 'en'];
-  return langs.some(l => String(l).toLowerCase().startsWith('zh')) ? 'zh' : 'en';
+  const primary = String((navigator.languages && navigator.languages[0]) || navigator.language || 'en').toLowerCase();
+  return primary.startsWith('zh') ? 'zh' : 'en';
 }
 function isEn() { return state.lang === 'en' && Boolean(EN); }
 function formatViews(n) {
