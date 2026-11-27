@@ -1,11 +1,14 @@
 const HERO_SLIDES = [
   { id: 'hero-1', order: 1, views24h: 3953074, engagement: 0.96, freshness: 1.0, sponsored: false, tag: '热度榜首 / 70 条视频站内播放', title: '罪恶都市黄昏海滨全玩法百科', desc: '收录 70 条实测高播放视频、8 组全图门禁密码速查板、6 大区域扫荡清单与 127 传奇武器点位，主机第二屏常驻工具站。', ctaText: '浏览 70 条实战视频', ctaHref: '#videos', image: 'assets/vice-city.jpg', fallback: 'https://vice6map.com/assets/screenshots/vice-city-ocean-drive.jpg', shortTitle: '罪恶都市海滨' },
-  { id: 'hero-2', order: 2, views24h: 1580000, engagement: 0.94, freshness: 0.98, sponsored: false, tag: 'Port Gellhorn 扫荡专题', title: '8 把传奇武器与 UFO 2314 永久加成', desc: '树顶沙发左轮、4 组固定地堡密码与星光旅馆 UFO 营救，一键进入区域扫荡模式逐项勾选。', ctaText: '打开区域扫荡工作台', ctaHref: '#sweep', image: 'assets/port-gellhorn.jpg', fallback: 'https://i.ytimg.com/vi/0NIez05L0YE/hqdefault.jpg', shortTitle: 'Port Gellhorn 扫荡' },
-  { id: 'hero-3', order: 3, views24h: 1227918, engagement: 0.93, freshness: 0.96, sponsored: false, tag: 'Leonida Keys 开荒防漏', title: '第一章离岛前绝不能漏的隐藏收集', desc: 'Tourist Trap 任务会清空 Jason 旧宅与现金，先去卧室地板藏钱并领完门口信箱赏金。', ctaText: '查看章节避坑路线', ctaHref: '#chapters', image: 'assets/leonida-keys.jpg', fallback: 'https://i.ytimg.com/vi/FvbVccBoVds/hqdefault.jpg', shortTitle: '群岛开荒防漏' },
-  { id: 'hero-4', order: 4, views24h: 1040000, engagement: 0.91, freshness: 0.93, sponsored: false, tag: 'Grassrivers 湿地探索', title: '臭鼬猿、巨型变异蟹与水下秘宝', desc: '深入草河沼泽追踪夜间怪谈生物与 33 处水下探索，出发前记得查清油量与后备箱配枪。', ctaText: '查看隐藏彩蛋解析', ctaHref: '#mechanics', image: 'assets/grassrivers.jpg', fallback: 'https://i.ytimg.com/vi/X08cBTfKpP4/hqdefault.jpg', shortTitle: '草河湿地怪谈' },
+  { id: 'hero-2', order: 2, views24h: 1580000, engagement: 0.94, freshness: 0.98, sponsored: false, tag: 'Port Gellhorn 扫荡专题', title: '8 把传奇武器与 UFO 2314 永久加成', desc: '树顶沙发左轮、4 组固定地堡密码与星光旅馆 UFO 营救，一键进入区域扫荡模式逐项勾选。', ctaText: '打开区域扫荡工作台', ctaHref: '#sweep', image: 'assets/port-gellhorn.jpg', fallback: 'https://preview.redd.it/absolutely-breathtaking-screenshot-of-ambrosia-from-gta-6-v0-k78ocmce05af1.jpeg?auto=webp&s=d7c4ff612e7d52f2c3e4f6799ad3fb1c522d855d', shortTitle: 'Port Gellhorn 扫荡' },
+  { id: 'hero-3', order: 3, views24h: 1227918, engagement: 0.93, freshness: 0.96, sponsored: false, tag: 'Leonida Keys 开荒防漏', title: '第一章离岛前绝不能漏的隐藏收集', desc: 'Tourist Trap 任务会清空 Jason 旧宅与现金，先去卧室地板藏钱并领完门口信箱赏金。', ctaText: '查看章节避坑路线', ctaHref: '#chapters', image: 'assets/leonida-keys.jpg', fallback: 'https://www.rockstargames.com/VI/_next/static/media/Jason_and_Lucia_Beach_landscape.0419q._86ukpt.jpg?akim=1&imdensity=1&imwidth=3840', shortTitle: '群岛开荒防漏' },
+  { id: 'hero-4', order: 4, views24h: 1040000, engagement: 0.91, freshness: 0.93, sponsored: false, tag: 'Grassrivers 湿地探索', title: '臭鼬猿、巨型变异蟹与水下秘宝', desc: '深入草河沼泽追踪夜间怪谈生物与 33 处水下探索，出发前记得查清油量与后备箱配枪。', ctaText: '查看隐藏彩蛋解析', ctaHref: '#mechanics', image: 'assets/grassrivers.jpg', fallback: 'https://i.redd.it/lf1754vhgw3f1.jpeg', shortTitle: '草河湿地怪谈' },
   { id: 'hero-5', order: 5, views24h: 960000, engagement: 0.89, freshness: 0.92, sponsored: false, tag: 'Mount Kalaga 峡谷', title: '100% 奖杯追踪与战绩海报一键生成', desc: '勾选 12 项核心白金权重，一键导出高清 PNG 战绩卡晒给好友，自带双主角犯罪档案评级。', ctaText: '生成我的战绩海报', ctaHref: '#checklist', image: 'assets/mount-kalaga.jpg', fallback: 'https://i.redd.it/lf1754vhgw3f1.jpeg', shortTitle: '100% 战绩海报' },
-  { id: 'hero-6', order: 6, views24h: 910000, engagement: 0.90, freshness: 0.95, sponsored: false, tag: '劫案利润决策器', title: '从第 1 章到第 4 章 20 万金库最优路线', desc: '实测 Yasmani 与 Tyrone 销赃差价，结合 8 袋厢车与双人传袋算出单趟最高净收益。', ctaText: '打开销赃计算器', ctaHref: '#sweep', image: 'https://www.rockstargames.com/VI/_next/static/media/Jason_and_Lucia_Beach_landscape.0419q._86ukpt.jpg?akim=1&imdensity=1&imwidth=3840', fallback: 'https://i.ytimg.com/vi/uObAnlU0MgI/hqdefault.jpg', shortTitle: '劫案销赃计算器' },
-  { id: 'hero-7', order: 7, views24h: 850000, engagement: 0.88, freshness: 0.95, sponsored: true, tag: '原生赞助席位 / 品牌示范', title: 'Ambrosia 夜幕与主机外设推荐通道', desc: '此焦点位支持热度算法与原生商业赞助混排，零弹窗干扰，助力开源攻略站长期运营。', ctaText: '查看硬件与赞助方案', ctaHref: '#sponsor', image: 'assets/ambrosia.jpg', fallback: 'https://preview.redd.it/absolutely-breathtaking-screenshot-of-ambrosia-from-gta-6-v0-k78ocmce05af1.jpeg?auto=webp&s=d7c4ff612e7d52f2c3e4f6799ad3fb1c522d855d', shortTitle: '原生赞助示范位' }
+  { id: 'hero-6', order: 6, views24h: 910000, engagement: 0.90, freshness: 0.95, sponsored: false, tag: '劫案利润决策器', title: '从第 1 章到第 4 章 20 万金库最优路线', desc: '实测 Yasmani 与 Tyrone 销赃差价，结合 8 袋厢车与双人传袋算出单趟最高净收益。', ctaText: '打开销赃计算器', ctaHref: '#sweep', image: 'assets/heist-vault.jpg', fallback: 'https://www.rockstargames.com/VI/_next/static/media/Jason_and_Lucia_Beach_landscape.0419q._86ukpt.jpg?akim=1&imdensity=1&imwidth=3840', shortTitle: '劫案销赃计算器' },
+  { id: 'hero-7', order: 7, views24h: 850000, engagement: 0.88, freshness: 0.95, sponsored: true, tag: '原生赞助席位 / 品牌示范', title: 'Ambrosia 夜幕与主机外设推荐通道', desc: '此焦点位支持热度算法与原生商业赞助混排，零弹窗干扰，助力开源攻略站长期运营。', ctaText: '查看硬件与赞助方案', ctaHref: '#sponsor', image: 'assets/ambrosia.jpg', fallback: 'https://preview.redd.it/absolutely-breathtaking-screenshot-of-ambrosia-from-gta-6-v0-k78ocmce05af1.jpeg?auto=webp&s=d7c4ff612e7d52f2c3e4f6799ad3fb1c522d855d', shortTitle: 'Ambrosia 夜幕' },
+  { id: 'hero-8', order: 8, views24h: 820000, engagement: 0.92, freshness: 0.94, sponsored: false, tag: '极速超跑实测榜', title: 'Thrax 9.2 极速与免费黑寡妇 Emerus', desc: '对比全作 Top 8 极速超跑圈速与刷车点，第 3 章用切割工具在码头集装箱直接免费开走。', ctaText: '查看超跑与武器榜', ctaHref: '#arsenal', image: 'assets/supercars-meet.jpg', fallback: 'https://vice6map.com/assets/screenshots/vice-city-ocean-drive.jpg', shortTitle: '极速超跑车聚' },
+  { id: 'hero-9', order: 9, views24h: 790000, engagement: 0.91, freshness: 0.93, sponsored: false, tag: '8 组全图门禁密码速查', title: 'Balsero 军火库与四大隐藏地堡密码', desc: '一键复制 789987 / 031462 / CLEAVES / 085355 等全部固定密码，含玩家实时补丁有效验证。', ctaText: '直达密码速查板', ctaHref: '#mechanics', image: 'assets/bunker-armory.jpg', fallback: 'https://preview.redd.it/absolutely-breathtaking-screenshot-of-ambrosia-from-gta-6-v0-k78ocmce05af1.jpeg?auto=webp&s=d7c4ff612e7d52f2c3e4f6799ad3fb1c522d855d', shortTitle: '地堡军火密码' },
+  { id: 'hero-10', order: 10, views24h: 760000, engagement: 0.90, freshness: 0.92, sponsored: false, tag: '1980s 复古罪城彩蛋', title: '12 座变电站与汤米花衬衫传送门', desc: '登顶 Key Lento 无线电塔后按 LIFE IS PASSING ME BY 顺序踩点，重返 1980 年代霓虹罪城。', ctaText: '进入玩家实时聊天室', ctaHref: '#lounge', image: 'assets/retro-vice.jpg', fallback: 'https://vice6map.com/assets/screenshots/vice-city-ocean-drive.jpg', shortTitle: '1980s 复古罪城' }
 ];
 
 const VIDEOS = [
@@ -83,7 +86,7 @@ const VIDEOS = [
 
 const SWEEP_DATA = {
   'port-gellhorn': {
-    name: 'Port Gellhorn 格尔霍恩港', sub: '第 2 章核心扫荡区 / 8 把传奇武器 + UFO 2314', image: 'assets/port-gellhorn.jpg', fallback: 'https://i.ytimg.com/vi/0NIez05L0YE/hqdefault.jpg',
+    name: 'Port Gellhorn 格尔霍恩港', sub: '第 2 章核心扫荡区 / 8 把传奇武器 + UFO 2314', image: 'assets/port-gellhorn.jpg', fallback: 'https://preview.redd.it/absolutely-breathtaking-screenshot-of-ambrosia-from-gta-6-v0-k78ocmce05af1.jpeg?auto=webp&s=d7c4ff612e7d52f2c3e4f6799ad3fb1c522d855d',
     items: [
       { id: 'pg-1', title: 'Couch Potato Mustang .357（传奇左轮）', detail: 'Tanglewood Ln 打断树上吊着沙发的绳索并坐上去触发' },
       { id: 'pg-2', title: 'Clunker 556（传奇步枪）', detail: 'Brooks Boatworks 船厂二楼办公室桌旁直接拾取' },
@@ -106,7 +109,7 @@ const SWEEP_DATA = {
     ]
   },
   'leonida-keys': {
-    name: 'Leonida Keys 群岛', sub: '第 1 章开荒必扫 / 藏钱防漏 + 复古罪城起点', image: 'assets/leonida-keys.jpg', fallback: 'https://i.ytimg.com/vi/FvbVccBoVds/hqdefault.jpg',
+    name: 'Leonida Keys 群岛', sub: '第 1 章开荒必扫 / 藏钱防漏 + 复古罪城起点', image: 'assets/leonida-keys.jpg', fallback: 'https://www.rockstargames.com/VI/_next/static/media/Jason_and_Lucia_Beach_landscape.0419q._86ukpt.jpg?akim=1&imdensity=1&imwidth=3840',
     items: [
       { id: 'lk-1', title: 'Jason 卧室松动地板藏钱 + 门口信箱领赏', detail: '解锁 BuckMe 银行前所有现金务必存地板，离岛前清光' },
       { id: 'lk-2', title: 'Key Lento 无线电塔彩蛋开关', detail: '登顶拨动电源并按身后按钮，开启 12 座 LPL 变电站传送门线' },
@@ -116,7 +119,7 @@ const SWEEP_DATA = {
     ]
   },
   'grassrivers': {
-    name: 'Grassrivers 草河湿地', sub: '沼泽怪谈与水下秘宝扫荡区', image: 'assets/grassrivers.jpg', fallback: 'https://i.ytimg.com/vi/X08cBTfKpP4/hqdefault.jpg',
+    name: 'Grassrivers 草河湿地', sub: '沼泽怪谈与水下秘宝扫荡区', image: 'assets/grassrivers.jpg', fallback: 'https://i.redd.it/lf1754vhgw3f1.jpeg',
     items: [
       { id: 'gr-1', title: 'Gullet 沼泽臭鼬猿 Skunk Ape', detail: '夜间深入湿地深处触发稀有神秘生物目击' },
       { id: 'gr-2', title: '巨型变异蟹遭遇点', detail: '沼泽岸边探索隐藏生物彩蛋并完成动物研究计数' },
@@ -137,9 +140,9 @@ const SWEEP_DATA = {
 
 const REGIONS = [
   { name: 'Vice City 罪恶都市', county: 'Vice-Dale 郡', desc: '第 3 与第 4 章主战场，涵盖 Ocean Beach、Downtown 与小古巴。聚集珠宝店、Randy 超跑订单、The Vault 隐藏电台与大型金库。', image: 'assets/vice-city.jpg', fallback: 'https://vice6map.com/assets/screenshots/vice-city-ocean-drive.jpg' },
-  { name: 'Leonida Keys 群岛', county: 'Mariana 郡', desc: '第 1 章开荒起点 Key Lento 所在海域。包含 Jason 卧室藏钱暗格、门口赏金信箱、无线电塔彩蛋起点及浅海沉船秘宝。', image: 'assets/leonida-keys.jpg', fallback: 'https://i.ytimg.com/vi/FvbVccBoVds/hqdefault.jpg' },
-  { name: 'Port Gellhorn 格尔霍恩港', county: 'Kelly 郡', desc: '第 2 章核心工业与公路城镇。藏有 8 把高性价比传奇武器、Moses 偷车销赃线，以及星光旅馆东侧夜间 UFO 遭遇点。', image: 'assets/port-gellhorn.jpg', fallback: 'https://i.ytimg.com/vi/0NIez05L0YE/hqdefault.jpg' },
-  { name: 'Grassrivers 湿地沼泽', county: 'Leonard 郡', desc: '鳄鱼与气垫船纵横的原始湿地。出没臭鼬猿 Skunk Ape、巨型变异蟹与多处非法帮派藏匿点，长途穿越务必盯紧油量。', image: 'assets/grassrivers.jpg', fallback: 'https://i.ytimg.com/vi/X08cBTfKpP4/hqdefault.jpg' },
+  { name: 'Leonida Keys 群岛', county: 'Mariana 郡', desc: '第 1 章开荒起点 Key Lento 所在海域。包含 Jason 卧室藏钱暗格、门口赏金信箱、无线电塔彩蛋起点及浅海沉船秘宝。', image: 'assets/leonida-keys.jpg', fallback: 'https://www.rockstargames.com/VI/_next/static/media/Jason_and_Lucia_Beach_landscape.0419q._86ukpt.jpg?akim=1&imdensity=1&imwidth=3840' },
+  { name: 'Port Gellhorn 格尔霍恩港', county: 'Kelly 郡', desc: '第 2 章核心工业与公路城镇。藏有 8 把高性价比传奇武器、Moses 偷车销赃线，以及星光旅馆东侧夜间 UFO 遭遇点。', image: 'assets/port-gellhorn.jpg', fallback: 'https://preview.redd.it/absolutely-breathtaking-screenshot-of-ambrosia-from-gta-6-v0-k78ocmce05af1.jpeg?auto=webp&s=d7c4ff612e7d52f2c3e4f6799ad3fb1c522d855d' },
+  { name: 'Grassrivers 湿地沼泽', county: 'Leonard 郡', desc: '鳄鱼与气垫船纵横的原始湿地。出没臭鼬猿 Skunk Ape、巨型变异蟹与多处非法帮派藏匿点，长途穿越务必盯紧油量。', image: 'assets/grassrivers.jpg', fallback: 'https://i.redd.it/lf1754vhgw3f1.jpeg' },
   { name: 'Ambrosia 工业腹地', county: 'Leonard 郡东缘', desc: '重工业与货运枢纽区域，遍布地下飙车、重型货车截劫路线与高危帮派据点，适合刷 200 辆载具扫描进度。', image: 'assets/ambrosia.jpg', fallback: 'https://preview.redd.it/absolutely-breathtaking-screenshot-of-ambrosia-from-gta-6-v0-k78ocmce05af1.jpeg?auto=webp&s=d7c4ff612e7d52f2c3e4f6799ad3fb1c522d855d' },
   { name: 'Mount Kalaga 国家公园', county: 'Lummox 郡北部', desc: '盘山峡谷与森林秘境，分布粉色发光陨石、稀有野生动物研究点、无人机高速穿峡赛道以及多处隐藏地堡入口。', image: 'assets/mount-kalaga.jpg', fallback: 'https://i.redd.it/lf1754vhgw3f1.jpeg' }
 ];
@@ -518,7 +521,13 @@ function renderHero() {
   const heatLabel = isEn() ? EN.ui.heatPrefix : '实时热度';
   document.getElementById('heroSlides').innerHTML = slides.map((s, idx) => `<div class="hero-slide${idx === state.heroIndex ? ' active' : ''}"><img src="${s.image}" alt="${escapeHtml(s.title)}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${s.fallback}';"></div>`).join('');
   document.getElementById('heroCopyBlock').innerHTML = `<div class="hero-meta-line tabular">${escapeHtml(active.tag)} / ${heatLabel} ${active.heat}</div><h1 class="hero-title">${escapeHtml(active.title)}</h1><p class="hero-desc">${escapeHtml(active.desc)}</p><div class="hero-cta-row"><a href="${active.ctaHref}" class="btn-primary">${escapeHtml(active.ctaText)}</a><span class="tabular" style="font-size:var(--text-sm); color:var(--text-muted);">${state.heroIndex + 1} / ${slides.length}</span></div>`;
-  document.getElementById('heroFilmstrip').innerHTML = slides.map((s, idx) => `<button type="button" class="filmstrip-item${idx === state.heroIndex ? ' active' : ''}" role="tab" aria-selected="${idx === state.heroIndex}" data-slide-idx="${idx}"><img class="filmstrip-thumb" src="${s.image}" alt="${escapeHtml(s.shortTitle)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${s.fallback}';"><div class="filmstrip-caption">${escapeHtml(s.shortTitle)}</div></button>`).join('');
+  const rail = document.getElementById('heroFilmstrip');
+  rail.innerHTML = slides.map((s, idx) => `<button type="button" class="filmstrip-item${idx === state.heroIndex ? ' active' : ''}" role="tab" aria-selected="${idx === state.heroIndex}" data-slide-idx="${idx}"><img class="filmstrip-thumb" src="${s.image}" alt="${escapeHtml(s.shortTitle)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${s.fallback}';"><div class="filmstrip-caption">${escapeHtml(s.shortTitle)}</div></button>`).join('');
+  const activeChip = rail.querySelector('.filmstrip-item.active');
+  if (activeChip && rail.scrollWidth > rail.clientWidth) {
+    const targetLeft = activeChip.offsetLeft - (rail.clientWidth / 2) + (activeChip.offsetWidth / 2);
+    rail.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+  }
 }
 function stepHero(delta) { state.heroIndex = (state.heroIndex + delta + HERO_SLIDES.length) % HERO_SLIDES.length; renderHero(); restartHeroAuto(); }
 function restartHeroAuto() { clearInterval(heroAutoTimer); if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; heroAutoTimer = setInterval(() => { state.heroIndex = (state.heroIndex + 1) % HERO_SLIDES.length; renderHero(); }, 6500); }
@@ -531,9 +540,19 @@ document.getElementById('heroSortTabs').addEventListener('click', (e) => {
   document.querySelectorAll('#heroSortTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn)));
   renderHero(); showToast(state.heroSort === 'heat' ? (isEn() ? EN.ui.toasts.heroHeat : '已按实时热度重排全景封面') : (isEn() ? EN.ui.toasts.heroEditorial : '已切换为官方精选顺序'));
 });
-const heroStage = document.getElementById('heroStage'); let touchStartX = 0;
+const heroStage = document.getElementById('heroStage'); let touchStartX = 0, heroWheelLock = 0;
 heroStage.addEventListener('pointerdown', (e) => { if (!e.target.closest('button, a')) touchStartX = e.clientX; });
 heroStage.addEventListener('pointerup', (e) => { if (!touchStartX) return; const diff = e.clientX - touchStartX; touchStartX = 0; if (Math.abs(diff) > 48) stepHero(diff > 0 ? -1 : 1); });
+heroStage.addEventListener('wheel', (e) => {
+  if (e.target.closest('#heroFilmstrip')) return;
+  if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 12) {
+    e.preventDefault();
+    const now = Date.now();
+    if (now - heroWheelLock < 520) return;
+    heroWheelLock = now;
+    stepHero(e.deltaX > 0 ? 1 : -1);
+  }
+}, { passive: false });
 heroStage.addEventListener('mouseenter', () => clearInterval(heroAutoTimer));
 heroStage.addEventListener('mouseleave', restartHeroAuto);
 
@@ -610,7 +629,7 @@ function renderVideos() {
     const cmtLbl = en ? EN.ui.commentsBtn : '评论';
     const shareLbl = en ? EN.ui.shareBtn : '分享';
     const chTag = raw.chMatch ? `<span class="chapter-match-tag">${en ? 'Ch.' + state.myChapter + ' Pick' : '适配第' + state.myChapter + '章'}</span>` : '';
-    return `<article class="video-item" id="video-${v.id}"><div class="video-media-slot" id="slot-${v.id}"><button type="button" class="video-cover-btn" data-inline-play="${v.id}" aria-label="${en ? 'Play inline ' : '当前卡片直接播放 '}${escapeHtml(v.title)}"><img src="https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg" alt="${escapeHtml(v.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg';"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar tabular"><span class="video-heat-num">${heatLbl} ${v.heat}</span><span>${v.duration}</span></div></button></div><div class="video-meta-row tabular"><span>${escapeHtml(v.channel)} ${chTag}</span><span>${formatViews(v.views)}</span></div><button type="button" class="video-title-btn" data-play-video="${v.id}">${escapeHtml(v.title)}</button><p style="font-size:var(--text-sm); color:var(--text-muted);">${escapeHtml(v.note)}</p><div class="video-foot-row"><button type="button" class="text-action-btn" style="color:var(--accent); font-weight:700;" data-play-video="${v.id}">${playLbl}</button><div style="display:flex; gap:0.85rem;"><button type="button" class="text-action-btn" data-share-video="${v.id}">${shareLbl}</button><button type="button" class="text-action-btn tabular" data-play-video="${v.id}">${cmtLbl} (${cCount})</button></div></div></article>`;
+    return `<article class="video-item" id="video-${v.id}"><div class="video-media-slot" id="slot-${v.id}"><button type="button" class="video-cover-btn" data-inline-play="${v.id}" aria-label="${en ? 'Play inline ' : '当前卡片直接播放 '}${escapeHtml(v.title)}"><img src="https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg" alt="${escapeHtml(v.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/sddefault.jpg';"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar tabular"><span class="video-heat-num">${heatLbl} ${v.heat}</span><span>${v.duration}</span></div></button></div><div class="video-meta-row tabular"><span>${escapeHtml(v.channel)} ${chTag}</span><span>${formatViews(v.views)}</span></div><button type="button" class="video-title-btn" data-play-video="${v.id}">${escapeHtml(v.title)}</button><p style="font-size:var(--text-sm); color:var(--text-muted);">${escapeHtml(v.note)}</p><div class="video-foot-row"><button type="button" class="text-action-btn" style="color:var(--accent); font-weight:700;" data-play-video="${v.id}">${playLbl}</button><div style="display:flex; gap:0.85rem;"><button type="button" class="text-action-btn" data-share-video="${v.id}">${shareLbl}</button><button type="button" class="text-action-btn tabular" data-play-video="${v.id}">${cmtLbl} (${cCount})</button></div></div></article>`;
   }).join('');
   const wrap = document.getElementById('videoLoadMoreWrap');
   if (visible.length < fullList.length) {
@@ -807,7 +826,7 @@ function renderCommunity() {
     const freshTag = isFreshPost48h(p) ? `<span class="new-boost-badge">${en ? '48h Boost' : '新投稿扶持'}</span>` : '';
     const memberTag = p.isMember ? `<span class="member-badge">✓</span>` : '';
     const platTag = p.platform ? `<span class="plat-tag">${escapeHtml(p.platform)}</span>` : '';
-    const mediaHtml = ytId ? `<div class="post-video-slot" id="post-slot-${p.id}"><button type="button" class="video-cover-btn" data-inline-play-post="${p.id}" data-yt-id="${ytId}" aria-label="${escapeHtml(inlineHint)} ${escapeHtml(p.title)}"><img src="https://i.ytimg.com/vi/${ytId}/hqdefault.jpg" alt="${escapeHtml(p.title)}" loading="lazy" referrerpolicy="no-referrer"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar"><span class="video-heat-num">${escapeHtml(inlineHint)}</span><span>16:9</span></div></button></div>` : '';
+    const mediaHtml = ytId ? `<div class="post-video-slot" id="post-slot-${p.id}"><button type="button" class="video-cover-btn" data-inline-play-post="${p.id}" data-yt-id="${ytId}" aria-label="${escapeHtml(inlineHint)} ${escapeHtml(p.title)}"><img src="https://i.ytimg.com/vi/${ytId}/maxresdefault.jpg" alt="${escapeHtml(p.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${ytId}/sddefault.jpg';"><span class="video-play-ring" aria-hidden="true">&#9654;</span><div class="video-overlay-bar"><span class="video-heat-num">${escapeHtml(inlineHint)}</span><span>16:9</span></div></button></div>` : '';
     const cinemaBtn = ytId ? `<button type="button" class="text-action-btn" style="color:var(--accent); font-weight:700;" data-play-post-modal="${p.id}" data-yt-id="${ytId}">${escapeHtml(cinemaLbl)}</button>` : '';
     return `<article class="post-row" id="post-${p.id}"><button type="button" class="upvote-btn tabular" data-upvote="${p.id}" aria-pressed="${voted}"><span>&#9650;</span><span>${p.upvotes}</span></button><div><div class="post-meta"><span>${escapeHtml(catLabel)}</span><span>/</span><strong style="color:var(--accent-gold);">${escapeHtml(p.author)}</strong>${memberTag}${platTag}${freshTag}</div><h3>${escapeHtml(p.title)}</h3><p class="post-body">${escapeHtml(p.body)}</p>${mediaHtml}<div class="post-toolbar">${renderReactionButtons('post:' + p.id)}${cinemaBtn}<button type="button" class="text-action-btn tabular" data-open-comments="${p.id}" data-comment-title="${escapeHtml(p.title)}">${en ? EN.ui.expandComments(cCount) : `展开评论 (${cCount})`}</button><button type="button" class="text-action-btn" data-share-post="${p.id}">${escapeHtml(shareLbl)}</button></div></div></article>`;
   }).join('');
