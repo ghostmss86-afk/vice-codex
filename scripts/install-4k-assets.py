@@ -29,15 +29,20 @@ SLOTS = [
 ]
 
 def find_zip():
+    if len(sys.argv) > 1 and Path(sys.argv[1]).exists():
+        return Path(sys.argv[1])
     candidates = [
+        Path("/Users/apple/Downloads/GTAVI_Screenshots.zip"),
         Path.home() / "Downloads" / "GTAVI_Screenshots.zip",
         ROOT / "GTAVI_Screenshots.zip",
     ]
     for p in candidates:
         if p.exists():
             return p
-    for p in sorted((Path.home() / "Downloads").glob("*GTA*VI*Screenshot*.zip")):
-        return p
+    for base in (Path("/Users/apple/Downloads"), Path.home() / "Downloads"):
+        if base.exists():
+            for p in sorted(base.glob("*GTA*VI*Screenshot*.zip")):
+                return p
     return None
 
 def install_from_zip(zip_path: Path):
