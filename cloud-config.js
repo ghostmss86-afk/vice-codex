@@ -3,6 +3,5 @@ window.VICE_CLOUD_CONFIG = {
   supabaseAnonKey: 'sb_publishable_SiosVT1eKHKYeJA6wRMh6Q_GgrPJpcu',
   cfAnalyticsToken: '',
   notifyEmail: '',
-  notifyWebhook: '',
-  adminPin: ''
+  notifyWebhook: ''
 };

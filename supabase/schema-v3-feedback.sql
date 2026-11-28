@@ -1,7 +1,10 @@
--- VICE CODEX Phase 3: Feedback Inbox & Real-Time Activity Log (Supabase Free Tier)
+-- VICE CODEX Phase 3: Secure Write-Only Feedback Inbox & Activity Log (Supabase RLS)
 -- Safe & idempotent: run once in Supabase Dashboard -> SQL Editor -> Run.
+-- SECURITY: Public visitors can ONLY insert new feedback/events.
+-- Nobody can read or modify vc_feedback / vc_events with the public key!
+-- Only the site owner (via Supabase Secret / service_role key in local private dashboard or GitHub Secrets) can read/manage them.
 
--- 1. User Feedback & Optimization Suggestions
+-- 1. User Feedback & Optimization Suggestions (Public INSERT-ONLY)
 create table if not exists public.vc_feedback (
   id text primary key,
   category text not null default '功能建议',
@@ -17,11 +20,11 @@ alter table public.vc_feedback enable row level security;
 drop policy if exists "Public read feedback" on public.vc_feedback;
 drop policy if exists "Public insert feedback" on public.vc_feedback;
 drop policy if exists "Public update feedback" on public.vc_feedback;
-create policy "Public read feedback" on public.vc_feedback for select using (true);
-create policy "Public insert feedback" on public.vc_feedback for insert with check (char_length(message) between 2 and 2000);
-create policy "Public update feedback" on public.vc_feedback for update using (true) with check (status in ('new', 'adopted', 'done'));
+create policy "Public insert feedback" on public.vc_feedback
+  for insert
+  with check (char_length(message) between 2 and 2000 and status = 'new');
 
--- 2. Real-Time Activity & Login/Comment Event Log (Powers Admin Dashboard & Daily Email Digest)
+-- 2. Real-Time Activity & Login/Comment Event Log (Public INSERT-ONLY)
 create table if not exists public.vc_events (
   id text primary key,
   event_type text not null,
@@ -34,5 +37,6 @@ create table if not exists public.vc_events (
 alter table public.vc_events enable row level security;
 drop policy if exists "Public read events" on public.vc_events;
 drop policy if exists "Public insert events" on public.vc_events;
-create policy "Public read events" on public.vc_events for select using (true);
-create policy "Public insert events" on public.vc_events for insert with check (event_type in ('feedback', 'comment', 'login', 'register', 'post', 'chat'));
+create policy "Public insert events" on public.vc_events
+  for insert
+  with check (event_type in ('feedback', 'comment', 'login', 'register', 'post', 'chat'));

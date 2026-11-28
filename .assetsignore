@@ -6,3 +6,5 @@ supabase
 README.md
 LICENSE
 wrangler.jsonc
+private
+admin.html

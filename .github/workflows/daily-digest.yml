@@ -17,8 +17,9 @@ jobs:
       - name: Run daily feedback & activity digest
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_API_URL: ${{ secrets.EMAIL_API_URL }}
           NOTIFY_WEBHOOK: ${{ secrets.NOTIFY_WEBHOOK }}
         run: node scripts/daily-digest.mjs
