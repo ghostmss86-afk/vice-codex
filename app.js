@@ -299,7 +299,7 @@ function rememberPlayerHandle(raw) {
 function applySavedProfileInputs() {
   const iden = getActiveIdentity();
   if (iden.handle) {
-    ['chatAuthorInput', 'vmCommentAuthor', 'commentAuthor', 'postAuthor'].forEach(id => {
+    ['chatAuthorInput', 'vmCommentAuthor', 'commentAuthor', 'postAuthor', 'feedbackAuthor'].forEach(id => {
       const el = document.getElementById(id); if (el) el.value = iden.handle;
     });
   }
@@ -912,9 +912,9 @@ document.getElementById('chatForm').addEventListener('submit', (e) => {
   document.getElementById('chatTextInput').value = ''; clearReplyTarget(); renderChat(); updateSocialCountersAndPulse(); showToast(isEn() ? EN.ui.toasts.chatSent(EN.ui.chatChannels[state.chatChannel] || state.chatChannel) : '已发送到 ' + state.chatChannel);
 });
 
-const backdrop = document.getElementById('backdrop'), videoModal = document.getElementById('videoModal'), publishDrawer = document.getElementById('publishDrawer'), commentDrawer = document.getElementById('commentDrawer'), friendDrawer = document.getElementById('friendDrawer'), searchModal = document.getElementById('searchModal'), authModal = document.getElementById('authModal');
+const backdrop = document.getElementById('backdrop'), videoModal = document.getElementById('videoModal'), publishDrawer = document.getElementById('publishDrawer'), commentDrawer = document.getElementById('commentDrawer'), friendDrawer = document.getElementById('friendDrawer'), feedbackDrawer = document.getElementById('feedbackDrawer'), searchModal = document.getElementById('searchModal'), authModal = document.getElementById('authModal');
 function closeAllOverlays() {
-  [videoModal, publishDrawer, commentDrawer, friendDrawer, searchModal, authModal].forEach(el => { if (el) { el.classList.remove('open'); el.setAttribute('aria-hidden', 'true'); } });
+  [videoModal, publishDrawer, commentDrawer, friendDrawer, feedbackDrawer, searchModal, authModal].forEach(el => { if (el) { el.classList.remove('open'); el.setAttribute('aria-hidden', 'true'); } });
   backdrop.classList.remove('open'); backdrop.setAttribute('aria-hidden', 'true');
   document.getElementById('videoIframeWrap').innerHTML = ''; state.activeVideoId = null;
 }
@@ -945,6 +945,7 @@ document.getElementById('closeAuthModalBtn').addEventListener('click', closeAllO
 document.getElementById('openPublishBtn').addEventListener('click', () => openOverlay(publishDrawer));
 document.getElementById('panelPublishBtn').addEventListener('click', () => openOverlay(publishDrawer));
 document.getElementById('dockPublishBtn').addEventListener('click', () => openOverlay(publishDrawer));
+['dockFeedbackBtn', 'footerFeedbackBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('click', () => openOverlay(feedbackDrawer)); });
 document.getElementById('pulseSubmitBtn').addEventListener('click', () => openOverlay(publishDrawer));
 document.getElementById('openFriendBtn').addEventListener('click', () => openOverlay(friendDrawer));
 document.getElementById('openAccountBtn').addEventListener('click', () => openAuthModal('register'));
@@ -974,6 +975,7 @@ document.getElementById('authRegisterForm').addEventListener('submit', async (e)
     state.member = { username: u.toLowerCase(), displayName: u.startsWith('@') ? u : '@' + u, platform: plat, avatarColor: color };
   }
   saveStore('vc_member_session', state.member); applySavedProfileInputs(); syncIdentityUI(); closeAllOverlays();
+  if (window.VICE_CLOUD) window.VICE_CLOUD.logEvent('register', state.member.displayName, `新玩家完成站内注册 (${state.member.platform})`, { platform: state.member.platform });
   showToast(isEn() ? `Welcome, ${state.member.displayName}! Cloud progress synced.` : `注册成功！欢迎 ${state.member.displayName}，当前进度已同步到云端`);
 });
 document.getElementById('authLoginForm').addEventListener('submit', async (e) => {
@@ -990,6 +992,7 @@ document.getElementById('authLoginForm').addEventListener('submit', async (e) =>
   if (res.member.progressJson && res.member.progressJson.checklist) { state.checklist = Object.assign({}, state.checklist, res.member.progressJson.checklist); saveStore('vc_v7_checklist', state.checklist); }
   if (res.member.progressJson && res.member.progressJson.sweepChecked) { state.sweepChecked = Object.assign({}, state.sweepChecked, res.member.progressJson.sweepChecked); saveStore('vc_v7_sweep', state.sweepChecked); }
   applySavedProfileInputs(); renderAll(); closeAllOverlays();
+  if (window.VICE_CLOUD) window.VICE_CLOUD.logEvent('login', state.member.displayName, `老玩家登录站内账号 (${state.member.platform})`, { platform: state.member.platform });
   showToast(isEn() ? `Welcome back, ${state.member.displayName}!` : `欢迎回来 ${state.member.displayName}，云端进度已恢复`);
 });
 document.getElementById('authGuestForm').addEventListener('submit', (e) => {
@@ -1120,7 +1123,7 @@ document.getElementById('vmCommentForm').addEventListener('submit', (e) => {
   const cKey = 'v-' + state.activeVideoId, author = state.profile.handle;
   if (!state.comments[cKey]) state.comments[cKey] = [];
   state.comments[cKey].push({ author, time: isEn() ? EN.ui.justNow : '刚刚', text }); saveStore('vc_v7_comments', state.comments);
-  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.addComment(cKey, author, text);
+  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) { window.VICE_CLOUD.addComment(cKey, author, text); window.VICE_CLOUD.logEvent('comment', author, `[视频 ${state.activeVideoId}] ${text}`, { target: cKey }); }
   document.getElementById('vmCommentText').value = ''; renderVideoModalComments(); renderVideos(); showToast(isEn() ? EN.ui.toasts.videoCommented : '已发表视频评论');
 });
 
@@ -1131,11 +1134,30 @@ document.getElementById('commentForm').addEventListener('submit', (e) => {
   const author = state.profile.handle;
   if (!state.comments[state.activeCommentKey]) state.comments[state.activeCommentKey] = [];
   state.comments[state.activeCommentKey].push({ author, time: isEn() ? EN.ui.justNow : '刚刚', text }); saveStore('vc_v7_comments', state.comments);
-  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.addComment(state.activeCommentKey, author, text);
+  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) { window.VICE_CLOUD.addComment(state.activeCommentKey, author, text); window.VICE_CLOUD.logEvent('comment', author, `[攻略 ${state.activeCommentKey}] ${text}`, { target: state.activeCommentKey }); }
   document.getElementById('commentBody').value = '';
   document.getElementById('commentList').innerHTML = getLocalizedComments(state.activeCommentKey).map(c => `<div class="chat-msg"><div class="chat-msg-head"><span class="chat-msg-author">${escapeHtml(c.author)}</span><span class="tabular">${escapeHtml(c.time)}</span></div><p style="font-size:var(--text-sm); color:var(--text-primary);">${escapeHtml(c.text)}</p></div>`).join('');
   renderCommunity(); showToast(isEn() ? EN.ui.toasts.commented : '已发表评论');
 });
+
+const feedbackFormEl = document.getElementById('feedbackForm');
+if (feedbackFormEl) {
+  feedbackFormEl.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const category = document.getElementById('feedbackCategory').value;
+    const authorRaw = document.getElementById('feedbackAuthor').value.trim();
+    const contact = document.getElementById('feedbackContact').value.trim();
+    const message = document.getElementById('feedbackMessage').value.trim();
+    if (!message) return;
+    const cur = getActiveIdentity();
+    const author = authorRaw ? (authorRaw.startsWith('@') ? authorRaw : '@' + authorRaw) : (cur.handle || '@匿名玩家');
+    const item = { id: 'fb-' + Date.now(), category, author, contact, message, createdAt: new Date().toISOString() };
+    const localFb = loadStore('vc_local_feedback', []); localFb.unshift(item); saveStore('vc_local_feedback', localFb.slice(0, 50));
+    if (window.VICE_CLOUD) await window.VICE_CLOUD.submitFeedback(item);
+    e.target.reset(); applySavedProfileInputs(); closeAllOverlays();
+    showToast(isEn() ? 'Feedback sent to the site owner! Thank you.' : '建议已发送给站长，感谢你的优化方案！');
+  });
+}
 
 document.getElementById('publishForm').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -1145,7 +1167,7 @@ document.getElementById('publishForm').addEventListener('submit', (e) => {
   const cur = getActiveIdentity();
   const newPost = { id: 'p-' + Date.now(), title, author: cur.handle || authorRaw, category, videoUrl, upvotes: 1, body, isMember: cur.isMember, platform: cur.platform };
   state.posts.unshift(newPost); state.upvoted[newPost.id] = true; saveStore('vc_v7_posts', state.posts); saveStore('vc_v7_upvoted', state.upvoted);
-  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) window.VICE_CLOUD.createPost(newPost);
+  if (window.VICE_CLOUD && window.VICE_CLOUD.enabled) { window.VICE_CLOUD.createPost(newPost); window.VICE_CLOUD.logEvent('post', newPost.author, `[${category}] ${title}`, { id: newPost.id }); }
   e.target.reset(); applySavedProfileInputs(); closeAllOverlays(); renderCommunity(); updateSocialCountersAndPulse(); jumpToLounge('posts', false); showToast(isEn() ? EN.ui.toasts.guidePublished : '已发布攻略到广场');
 });
 

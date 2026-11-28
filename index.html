@@ -517,7 +517,7 @@
 
   <footer class="site-footer">
     <div class="container footer-inner">
-      <span>罪城全书 VICE CODEX v8.1 / MIT 开源攻略生态</span>
+      <span>罪城全书 VICE CODEX v8.1 / MIT 开源攻略生态 · <button type="button" class="text-action-btn" id="footerFeedbackBtn">提建议与反馈</button></span>
       <span>已收录 70 条实测高流量视频、中英双语切换、8 组全图门禁密码速查板与 6 大区域定制视觉</span>
     </div>
   </footer>
@@ -657,7 +657,26 @@
     </div>
   </div>
 
-  <div class="floating-social-dock" id="floatingDock" aria-label="快捷社交入口">
+  <aside class="drawer" id="feedbackDrawer" aria-label="网站建议与反馈" aria-hidden="true">
+    <div class="drawer-head">
+      <h3 id="feedbackDrawerTitle">给网站提建议 / 反馈优化方案</h3>
+      <button type="button" class="btn-secondary" data-close-drawer>关闭</button>
+    </div>
+    <form class="drawer-body" id="feedbackForm">
+      <p class="auth-hint" id="feedbackDrawerHint">无论是新功能点子、界面优化方案、攻略纠错还是 Bug，提交后会直接进入站长收件箱并同步通知站长。</p>
+      <div class="field"><label for="feedbackCategory">反馈类型</label><select id="feedbackCategory"><option value="功能建议">功能建议 / 新玩法</option><option value="界面优化">界面与体验优化</option><option value="攻略纠错">攻略与密码纠错</option><option value="Bug 反馈">Bug / 异常反馈</option></select></div>
+      <div class="field"><label for="feedbackAuthor">你的称呼（选填）</label><input type="text" id="feedbackAuthor" maxlength="32" placeholder="例如：@VicePlayer（不填则匿名）"></div>
+      <div class="field"><label for="feedbackContact">联系方式（选填，方便回复你）</label><input type="text" id="feedbackContact" maxlength="64" placeholder="邮箱 / X 账号 / 微信（仅站长可见）"></div>
+      <div class="field"><label for="feedbackMessage">详细建议或优化方案</label><textarea id="feedbackMessage" required maxlength="2000" placeholder="说说你希望增加什么功能、哪里体验不够顺手，或者发现了什么问题..."></textarea></div>
+      <div class="drawer-foot" style="padding:0.75rem 0 0; border-top:0;">
+        <button type="button" class="btn-secondary" data-close-drawer>取消</button>
+        <button type="submit" class="btn-primary" id="feedbackSubmitBtn">发送给站长</button>
+      </div>
+    </form>
+  </aside>
+
+  <div class="floating-social-dock" id="floatingDock" aria-label="快捷社交与反馈入口">
+    <button type="button" class="dock-btn dock-btn-feedback" id="dockFeedbackBtn">提建议</button>
     <button type="button" class="dock-btn dock-btn-chat" id="dockChatBtn"><span class="pulse-dot" aria-hidden="true"></span><span id="dockChatLabel">聊天室</span><span class="dock-badge tabular" id="dockChatCount">0</span></button>
     <button type="button" class="dock-btn dock-btn-post" id="dockPublishBtn">+ 传视频攻略</button>
   </div>

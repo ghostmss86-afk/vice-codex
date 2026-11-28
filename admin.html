@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>站长反馈与动态看板 · 罪城全书 VICE CODEX</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <style>
+    .admin-wrap { padding: 5.5rem 0 4rem; min-height: 100vh; }
+    .admin-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--hairline); padding-bottom: 1.5rem; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin-bottom: 2.25rem; }
+    .kpi-card { background: var(--bg-surface); border: 1px solid var(--hairline); padding: 1.25rem 1.4rem; display: flex; flex-direction: column; gap: 0.35rem; }
+    .kpi-label { font-size: var(--text-sm); color: var(--text-muted); }
+    .kpi-val { font-size: clamp(1.75rem, 3vw, 2.3rem); font-weight: 900; color: var(--text-primary); line-height: 1.1; }
+    .kpi-sub { font-size: var(--text-table); color: var(--accent-teal); }
+    .admin-cols { display: grid; grid-template-columns: 1.25fr 1fr; gap: 2rem; align-items: start; }
+    .admin-card { background: var(--bg-surface); border: 1px solid var(--hairline); padding: 1.4rem; display: flex; flex-direction: column; gap: 1rem; }
+    .admin-card-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; border-bottom: 1px solid var(--hairline); padding-bottom: 0.85rem; }
+    .fb-item, .ev-item { padding: 0.95rem 0; border-bottom: 1px solid var(--hairline); display: flex; flex-direction: column; gap: 0.45rem; }
+    .fb-item:last-child, .ev-item:last-child { border-bottom: 0; padding-bottom: 0; }
+    .fb-meta, .ev-meta { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; font-size: var(--text-table); color: var(--text-muted); }
+    .badge { display: inline-flex; align-items: center; padding: 0.12rem 0.48rem; border-radius: 2px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--hairline-strong); }
+    .badge-feedback { color: var(--accent); border-color: rgba(255, 90, 54, 0.5); background: rgba(255, 90, 54, 0.12); }
+    .badge-login, .badge-register { color: var(--accent-teal); border-color: rgba(46, 196, 182, 0.5); background: rgba(46, 196, 182, 0.12); }
+    .badge-comment, .badge-post, .badge-chat { color: var(--accent-gold); border-color: rgba(245, 176, 65, 0.5); background: rgba(245, 176, 65, 0.12); }
+    .status-select { background: var(--bg-page); border: 1px solid var(--hairline-strong); border-radius: 2px; padding: 0.25rem 0.5rem; font-size: var(--text-table); color: var(--text-primary); cursor: pointer; }
+    .digest-box { background: var(--bg-page); border: 1px solid var(--hairline); padding: 1rem; font-size: var(--text-sm); color: var(--text-muted); white-space: pre-wrap; max-height: 260px; overflow-y: auto; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .pin-gate { max-width: 420px; margin: 12vh auto; background: var(--bg-surface); border: 1px solid var(--hairline-strong); padding: 2rem; display: flex; flex-direction: column; gap: 1rem; }
+    @media (max-width: 960px) {
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .admin-cols { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header scrolled">
+    <div class="container header-inner">
+      <a href="./index.html" class="brand-wordmark">罪城全书 <span>站长看板</span></a>
+      <div class="header-actions">
+        <a href="./index.html" class="btn-secondary">返回主站</a>
+        <button type="button" class="btn-secondary" id="refreshBtn">刷新数据</button>
+        <button type="button" class="btn-primary" id="copyDigestBtn">复制今日汇报</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container admin-wrap">
+    <div id="pinGate" class="pin-gate" hidden>
+      <h2>站长看板验证</h2>
+      <p style="font-size:var(--text-sm); color:var(--text-muted);">已在 cloud-config.js 中开启看板访问密码，请输入站长 PIN 继续。</p>
+      <form id="pinForm" style="display:flex; gap:0.6rem;">
+        <input type="password" class="chat-input" id="pinInput" placeholder="输入站长 PIN" required>
+        <button type="submit" class="btn-primary">进入</button>
+      </form>
+    </div>
+
+    <div id="dashboardMain">
+      <div class="admin-top">
+        <div>
+          <h2>反馈与互动实时监控看板</h2>
+          <p class="section-lead" id="syncInfo">正在连接 Supabase 云端数据库...</p>
+        </div>
+        <div class="controls-row">
+          <div class="segmented" role="tablist" id="rangeTabs">
+            <button type="button" role="tab" aria-selected="true" data-range="today">今日 (24h)</button>
+            <button type="button" role="tab" aria-selected="false" data-range="7d">近 7 天</button>
+            <button type="button" role="tab" aria-selected="false" data-range="all">全部历史</button>
+          </div>
+          <button type="button" class="btn-secondary" id="sendDigestMailBtn">发送今日汇报到邮箱</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid tabular">
+        <div class="kpi-card">
+          <span class="kpi-label">用户建议与反馈</span>
+          <span class="kpi-val" id="kpiFeedback">0</span>
+          <span class="kpi-sub" id="kpiFeedbackSub">待处理 0 条</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">注册与登录动态</span>
+          <span class="kpi-val" id="kpiAuth">0</span>
+          <span class="kpi-sub" id="kpiAuthSub">累计注册会员 0 人</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">视频与攻略评论</span>
+          <span class="kpi-val" id="kpiComments">0</span>
+          <span class="kpi-sub">含视频大屏与攻略区评论</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">社区投稿与热聊</span>
+          <span class="kpi-val" id="kpiSocial">0</span>
+          <span class="kpi-sub" id="kpiSocialSub">投稿 0 / 聊天 0</span>
+        </div>
+      </div>
+
+      <div class="admin-cols">
+        <section class="admin-card">
+          <div class="admin-card-head">
+            <h3>用户建议与优化方案收件箱</h3>
+            <div class="segmented" role="tablist" id="fbStatusTabs">
+              <button type="button" role="tab" aria-selected="true" data-fb-status="all">全部</button>
+              <button type="button" role="tab" aria-selected="false" data-fb-status="new">待处理</button>
+              <button type="button" role="tab" aria-selected="false" data-fb-status="adopted">已采纳</button>
+              <button type="button" role="tab" aria-selected="false" data-fb-status="done">已完成</button>
+            </div>
+          </div>
+          <div id="feedbackList"><p class="empty-state">加载中...</p></div>
+        </section>
+
+        <div style="display:flex; flex-direction:column; gap:1.5rem;">
+          <section class="admin-card">
+            <div class="admin-card-head">
+              <h3>最新登录、评论与互动动态</h3>
+              <span class="tabular" style="font-size:var(--text-table); color:var(--accent-teal);" id="evCountLabel">0 条</span>
+            </div>
+            <div id="eventFeed" style="max-height:460px; overflow-y:auto;"><p class="empty-state">加载中...</p></div>
+          </section>
+
+          <section class="admin-card">
+            <div class="admin-card-head">
+              <h3>每日汇报摘要预览</h3>
+              <span style="font-size:var(--text-table); color:var(--text-muted);">自动匹配当前时间范围</span>
+            </div>
+            <div class="digest-box" id="digestPreview">生成中...</div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./cloud-config.js"></script>
+  <script src="./supabase-sync.js"></script>
+  <script>
+    (function () {
+      const cfg = window.VICE_CLOUD_CONFIG || {};
+      const state = { range: 'today', fbStatus: 'all', data: null };
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg; el.classList.add('visible');
+        clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('visible'), 2500);
+      }
+      function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+      function fmtTime(iso) {
+        if (!iso) return '-';
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return iso;
+        return d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+      }
+      function inRange(iso) {
+        if (state.range === 'all') return true;
+        const ts = Date.parse(iso || '');
+        if (!ts) return state.range === 'all';
+        const diff = Date.now() - ts;
+        return state.range === 'today' ? diff <= 24 * 3600 * 1000 : diff <= 7 * 24 * 3600 * 1000;
+      }
+
+      if (cfg.adminPin && sessionStorage.getItem('vc_admin_ok') !== cfg.adminPin) {
+        document.getElementById('pinGate').hidden = false;
+        document.getElementById('dashboardMain').hidden = true;
+        document.getElementById('pinForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          if (document.getElementById('pinInput').value === cfg.adminPin) {
+            sessionStorage.setItem('vc_admin_ok', cfg.adminPin);
+            document.getElementById('pinGate').hidden = true;
+            document.getElementById('dashboardMain').hidden = false;
+            loadData();
+          } else {
+            showToast('PIN 不正确');
+          }
+        });
+      }
+
+      function buildDigestText() {
+        const d = state.data || { feedback: [], events: [], comments: [], members: [], posts: [], chat: [] };
+        const fb = d.feedback.filter(x => inRange(x.created_at));
+        const ev = d.events.filter(x => inRange(x.created_at));
+        const authEv = ev.filter(x => x.event_type === 'login' || x.event_type === 'register');
+        const cm = d.comments.filter(x => inRange(x.created_at));
+        const po = d.posts.filter(x => inRange(x.created_at));
+        const ch = d.chat.filter(x => inRange(x.created_at));
+        const rangeName = state.range === 'today' ? '最近 24 小时' : (state.range === '7d' ? '最近 7 天' : '全部历史');
+        const lines = [
+          `【罪城全书 VICE CODEX】站长反馈与动态汇报（${rangeName}）`,
+          `生成时间：${new Date().toLocaleString('zh-CN')}`,
+          `----------------------------------------`,
+          `• 新增建议与反馈：${fb.length} 条（待处理 ${fb.filter(x => x.status === 'new').length} 条）`,
+          `• 登录/注册动态：${authEv.length} 次（累计注册会员 ${d.members.length} 人）`,
+          `• 新增评论：${cm.length} 条`,
+          `• 新增投稿：${po.length} 篇 | 新增聊天：${ch.length} 条`,
+          ``
+        ];
+        if (fb.length) {
+          lines.push('【用户建议与优化方案】');
+          fb.slice(0, 15).forEach((x, i) => {
+            lines.push(`${i + 1}. [${x.category}] ${x.author}${x.contact ? ' (' + x.contact + ')' : ''}：${x.message}`);
+          });
+          lines.push('');
+        }
+        if (cm.length) {
+          lines.push('【最新评论】');
+          cm.slice(0, 15).forEach((c, i) => {
+            lines.push(`${i + 1}. ${c.author} (${c.target_key})：${c.text}`);
+          });
+          lines.push('');
+        }
+        if (authEv.length) {
+          lines.push('【最新登录/注册】');
+          authEv.slice(0, 15).forEach((a, i) => {
+            lines.push(`${i + 1}. [${a.event_type === 'register' ? '新注册' : '登录'}] ${a.actor} - ${a.summary}`);
+          });
+        }
+        return lines.join('\n');
+      }
+
+      function render() {
+        const d = state.data;
+        if (!d) return;
+        const fbAll = d.feedback.filter(x => inRange(x.created_at));
+        const fbFiltered = fbAll.filter(x => state.fbStatus === 'all' || x.status === state.fbStatus);
+        const evAll = d.events.filter(x => inRange(x.created_at));
+        const authEv = evAll.filter(x => x.event_type === 'login' || x.event_type === 'register');
+        const cmAll = d.comments.filter(x => inRange(x.created_at));
+        const poAll = d.posts.filter(x => inRange(x.created_at));
+        const chAll = d.chat.filter(x => inRange(x.created_at));
+
+        document.getElementById('kpiFeedback').textContent = String(fbAll.length);
+        document.getElementById('kpiFeedbackSub').textContent = `待处理 ${fbAll.filter(x => x.status === 'new').length} 条`;
+        document.getElementById('kpiAuth').textContent = String(authEv.length);
+        document.getElementById('kpiAuthSub').textContent = `累计注册会员 ${d.members.length} 人`;
+        document.getElementById('kpiComments').textContent = String(cmAll.length);
+        document.getElementById('kpiSocial').textContent = String(poAll.length + chAll.length);
+        document.getElementById('kpiSocialSub').textContent = `投稿 ${poAll.length} / 聊天 ${chAll.length}`;
+
+        const fbBox = document.getElementById('feedbackList');
+        if (!fbFiltered.length) {
+          fbBox.innerHTML = '<p class="empty-state">当前筛选下暂无用户反馈。</p>';
+        } else {
+          fbBox.innerHTML = fbFiltered.map(f => `
+            <article class="fb-item">
+              <div class="fb-meta">
+                <span><span class="badge badge-feedback">${esc(f.category)}</span> <strong style="color:var(--accent-gold); margin-left:0.35rem;">${esc(f.author)}</strong>${f.contact ? ` · <span>${esc(f.contact)}</span>` : ''}</span>
+                <span style="display:flex; align-items:center; gap:0.5rem;">
+                  <span class="tabular">${fmtTime(f.created_at)}</span>
+                  <select class="status-select" data-fb-id="${esc(f.id)}">
+                    <option value="new" ${f.status === 'new' ? 'selected' : ''}>待处理</option>
+                    <option value="adopted" ${f.status === 'adopted' ? 'selected' : ''}>已采纳</option>
+                    <option value="done" ${f.status === 'done' ? 'selected' : ''}>已完成</option>
+                  </select>
+                </span>
+              </div>
+              <p style="font-size:var(--text-body); color:var(--text-primary);">${esc(f.message)}</p>
+            </article>
+          `).join('');
+        }
+
+        const mergedFeed = [];
+        evAll.forEach(e => mergedFeed.push({ type: e.event_type, actor: e.actor, text: e.summary, time: e.created_at }));
+        if (!evAll.length) {
+          cmAll.forEach(c => mergedFeed.push({ type: 'comment', actor: c.author, text: `[${c.target_key}] ${c.text}`, time: c.created_at }));
+          d.members.filter(m => inRange(m.created_at)).forEach(m => mergedFeed.push({ type: 'register', actor: m.display_name, text: `新玩家注册 (${m.platform})`, time: m.created_at }));
+        }
+        mergedFeed.sort((a, b) => Date.parse(b.time || 0) - Date.parse(a.time || 0));
+        document.getElementById('evCountLabel').textContent = `${mergedFeed.length} 条`;
+        const typeLabel = { feedback: '反馈', login: '登录', register: '新注册', comment: '评论', post: '新投稿', chat: '聊天' };
+        const feedBox = document.getElementById('eventFeed');
+        if (!mergedFeed.length) {
+          feedBox.innerHTML = '<p class="empty-state">当前时间段暂无互动记录。</p>';
+        } else {
+          feedBox.innerHTML = mergedFeed.slice(0, 60).map(item => `
+            <div class="ev-item">
+              <div class="ev-meta">
+                <span><span class="badge badge-${esc(item.type)}">${typeLabel[item.type] || esc(item.type)}</span> <strong style="color:var(--text-primary); margin-left:0.35rem;">${esc(item.actor)}</strong></span>
+                <span class="tabular">${fmtTime(item.time)}</span>
+              </div>
+              <div style="font-size:var(--text-sm); color:var(--text-muted);">${esc(item.text)}</div>
+            </div>
+          `).join('');
+        }
+        document.getElementById('digestPreview').textContent = buildDigestText();
+      }
+
+      async function loadData() {
+        const info = document.getElementById('syncInfo');
+        if (!window.VICE_CLOUD || !window.VICE_CLOUD.enabled) {
+          info.textContent = '未检测到 Supabase 配置，请检查 cloud-config.js。';
+          return;
+        }
+        info.textContent = '正在同步最新反馈、评论与登录数据...';
+        const d = await window.VICE_CLOUD.fetchAdminDashboard();
+        if (!d) {
+          info.textContent = '拉取失败，请检查网络或确认已在 Supabase 执行 schema-v3-feedback.sql。';
+          return;
+        }
+        state.data = d;
+        const missingNote = d.feedbackMissing ? '（提示：尚未建 vc_feedback 表，请先在 Supabase 执行 schema-v3-feedback.sql）' : '';
+        info.textContent = `已连接 Supabase · 最后刷新 ${new Date().toLocaleTimeString('zh-CN')} ${missingNote}`;
+        render();
+      }
+
+      document.getElementById('rangeTabs').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-range]'); if (!btn) return;
+        state.range = btn.dataset.range;
+        document.querySelectorAll('#rangeTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn)));
+        render();
+      });
+      document.getElementById('fbStatusTabs').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-fb-status]'); if (!btn) return;
+        state.fbStatus = btn.dataset.fbStatus;
+        document.querySelectorAll('#fbStatusTabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn)));
+        render();
+      });
+      document.getElementById('feedbackList').addEventListener('change', async (e) => {
+        const sel = e.target.closest('select[data-fb-id]'); if (!sel) return;
+        const id = sel.dataset.fbId, status = sel.value;
+        await window.VICE_CLOUD.updateFeedbackStatus(id, status);
+        const item = (state.data.feedback || []).find(x => x.id === id);
+        if (item) item.status = status;
+        render();
+        showToast('已更新反馈处理状态');
+      });
+      document.getElementById('refreshBtn').addEventListener('click', loadData);
+      document.getElementById('copyDigestBtn').addEventListener('click', () => {
+        navigator.clipboard.writeText(buildDigestText()).then(() => showToast('已复制今日汇报内容'));
+      });
+      document.getElementById('sendDigestMailBtn').addEventListener('click', async () => {
+        const email = (cfg.notifyEmail || '').trim();
+        if (!email) {
+          showToast('请先在 cloud-config.js 中填入你的 notifyEmail 邮箱');
+          return;
+        }
+        const ok = await window.VICE_CLOUD.triggerInstantNotify('daily_digest', '站长看板手动汇报', buildDigestText());
+        showToast(ok ? `已发送今日汇报到 ${email}` : '发送请求已发出（首次使用请去邮箱点击 FormSubmit 激活邮件）');
+      });
+
+      if (!document.getElementById('dashboardMain').hidden) loadData();
+    })();
+  </script>
+</body>
+</html>

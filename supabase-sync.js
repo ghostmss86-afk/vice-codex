@@ -197,6 +197,110 @@
         headers: headers({ Prefer: 'resolution=merge-duplicates,return=minimal' }),
         body: JSON.stringify({ target_key: targetKey, emoji, count })
       });
+    },
+    async triggerInstantNotify(eventType, title, body) {
+      const hook = (cfg.notifyWebhook || '').trim();
+      const email = (cfg.notifyEmail || '').trim();
+      let sent = false;
+      if (hook) {
+        try {
+          await fetch(hook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              msg_type: 'text',
+              content: { text: `[罪城全书] ${title}\n${body}` },
+              text: `[罪城全书] ${title}\n${body}`,
+              title: `[罪城全书] ${title}`,
+              body,
+              event_type: eventType
+            })
+          });
+          sent = true;
+        } catch (e) {}
+      }
+      if (email && cfg.notifyEmailEndpoint) {
+        try {
+          await fetch(cfg.notifyEmailEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({
+              _subject: `[罪城全书通知] ${title}`,
+              event: eventType,
+              detail: body,
+              site: location.href
+            })
+          });
+          sent = true;
+        } catch (e) {}
+      }
+      return sent;
+    },
+    async logEvent(eventType, actor, summary, meta) {
+      const id = 'ev-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+      if (enabled) {
+        req('vc_events', {
+          method: 'POST',
+          headers: headers({ Prefer: 'return=minimal' }),
+          body: JSON.stringify({
+            id,
+            event_type: eventType,
+            actor: actor || '@匿名玩家',
+            summary: String(summary || '').slice(0, 500),
+            meta_json: meta || {}
+          })
+        });
+      }
+      if (['feedback', 'login', 'register', 'comment', 'post'].includes(eventType)) {
+        const labels = { feedback: '新网站反馈', login: '玩家登录', register: '新玩家注册', comment: '新评论', post: '新攻略投稿' };
+        this.triggerInstantNotify(eventType, `${labels[eventType] || eventType} · ${actor || '@匿名玩家'}`, summary);
+      }
+      return true;
+    },
+    async submitFeedback(fb) {
+      const row = {
+        id: fb.id || ('fb-' + Date.now()),
+        category: fb.category || '功能建议',
+        author: fb.author || '@匿名玩家',
+        contact: fb.contact || '',
+        message: fb.message || '',
+        page_url: location.href,
+        status: 'new'
+      };
+      const ok = enabled ? await req('vc_feedback', {
+        method: 'POST',
+        headers: headers({ Prefer: 'return=minimal' }),
+        body: JSON.stringify(row)
+      }) : false;
+      this.logEvent('feedback', row.author, `[${row.category}] ${row.message}${row.contact ? ' | 联系：' + row.contact : ''}`, { category: row.category, contact: row.contact });
+      return Boolean(ok);
+    },
+    async updateFeedbackStatus(id, status) {
+      return req('vc_feedback?id=eq.' + encodeURIComponent(id), {
+        method: 'PATCH',
+        headers: headers({ Prefer: 'return=minimal' }),
+        body: JSON.stringify({ status })
+      });
+    },
+    async fetchAdminDashboard() {
+      if (!enabled) return null;
+      const [feedback, events, comments, members, posts, chat] = await Promise.all([
+        req('vc_feedback?select=*&order=created_at.desc&limit=200'),
+        req('vc_events?select=*&order=created_at.desc&limit=200'),
+        req('item_comments?select=*&order=created_at.desc&limit=200'),
+        req('vc_members?select=username,display_name,platform,created_at&order=created_at.desc&limit=200'),
+        req('community_posts?select=id,title,author,category,created_at&order=created_at.desc&limit=100'),
+        req('chat_messages?select=id,channel,author,text,created_at&order=created_at.desc&limit=200')
+      ]);
+      return {
+        feedbackMissing: feedback === null,
+        feedback: Array.isArray(feedback) ? feedback : [],
+        events: Array.isArray(events) ? events : [],
+        comments: Array.isArray(comments) ? comments : [],
+        members: Array.isArray(members) ? members : [],
+        posts: Array.isArray(posts) ? posts : [],
+        chat: Array.isArray(chat) ? chat : []
+      };
     }
   };
 })();

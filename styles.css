@@ -254,6 +254,8 @@ h3 { font-size: var(--text-body); font-weight: 700; line-height: 1.4; }
 .floating-social-dock { position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 55; display: flex; align-items: center; gap: 0.5rem; }
 .dock-btn { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.62rem 0.95rem; border-radius: 2px; font-size: var(--text-sm); font-weight: 700; cursor: pointer; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45); transition: transform 160ms var(--ease-out), background-color 160ms var(--ease-out), border-color 160ms var(--ease-out); }
 .dock-btn:hover { transform: translateY(-2px); }
+.dock-btn-feedback { background-color: rgba(16, 24, 36, 0.96); color: var(--accent-gold); border: 1px solid rgba(245, 176, 65, 0.55); }
+.dock-btn-feedback:hover { border-color: var(--accent-gold); background-color: rgba(245, 176, 65, 0.14); }
 .dock-btn-chat { background-color: rgba(16, 24, 36, 0.96); color: var(--text-primary); border: 1px solid var(--accent-teal); }
 .dock-btn-post { background-color: var(--accent); color: #FFFFFF; border: 1px solid var(--accent); }
 .dock-btn-post:hover { background-color: var(--accent-hover); }
